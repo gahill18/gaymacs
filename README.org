@@ -1,0 +1,40 @@
+#+TITLE: GAYMACS, a rusty emacs-inspired text editor
+#+AUTHOR: Garrett Hill
+#+EMAIL: gahill2018@protonmail.com
+#+OPTIONS: toc:nil, num:nil
+
+* Intro
+
+  There's nothing quite as homoerotic as the circlejerking of the Emacs and Rust communities, of which I am a proud member. Hence, GAYMACS, an emacs inspired text editor written in Rust.
+
+* Features
+
+  So far, not much! Here's the todo/done list:
+
+** Frames
+   
+*** DONE Create initial data structures and roadmap
+*** TODO User writes to buffer
+*** TODO When they save (certain keypress) contents of buffer writes to file
+*** DONE User can move the cursor around the tui
+
+** Minibuffer
+
+*** TODO Popup on bottom of screen on keypress or alert
+*** TODO Print readout of stderr
+*** TODO Execute native functions
+*** TODO Execute user functions
+
+
+** Window Management
+   
+*** TODO Split window into multiple frames
+*** TODO resizable frames
+*** TODO floating frames AND/OR tiling frames
+
+
+* How To Get Started
+
+** TODO Instructions on compiling from source
+
+** TODO Instructions on just jumping in :)

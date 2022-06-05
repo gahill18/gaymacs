@@ -1,0 +1,9 @@
+#[derive(PartialEq)]
+pub enum Action {
+    MoveUp,
+    MoveDown,
+    MoveLeft,
+    MoveRight,
+    Quit,
+    DoNo,
+}

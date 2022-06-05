@@ -1,0 +1,86 @@
+/* Author: Garrett Hill */
+
+use console::{Term, Key};
+use std::io::Result;
+
+// Use windows and frames in main functionality
+mod gaymacs;
+use crate::gaymacs::frame::{Frame, *};
+use crate::gaymacs::window::{Window, *};
+use crate::gaymacs::actions::{Action, Action::*};
+
+// Setup the starting conditions for the editor
+fn startup(term: &Term) -> Result<(Window, Frame)> {
+    // Frame Name
+    let fname: String = String::from("*startup*");
+    // Frame's Initial Buffer text
+    let fibuf: String = String::from("Splash!");
+    // Starting frame
+    let mut aframe: Frame = init_frame(0, fname, fibuf);
+    // starting window
+    let mut init_win: Window = init_win(aframe.clone());
+    
+    // List the frames
+    init_win.ls_frames(&term)?;
+    // Show the text of the first frame
+    aframe.print(&term)?;
+    // Show the minibuffer text
+    init_win.popup_mini(&term)?;
+    
+    // Return the starting window and starting frame
+    return Ok((init_win, aframe))
+}
+
+// Logic for user input in stdin
+fn handle_keypress(term: &Term) -> Result<Action> {
+    let mut out = DoNo;
+    match term.read_key()? {
+	Key::Char('q') => {
+	    return Ok(Quit)
+	},
+	Key::Char('p') => {
+	    return Ok(MoveUp)
+	},
+	Key::Char('n') => {
+	    return Ok(MoveDown)
+	}
+	Key::Char('b') => {
+	    return Ok(MoveLeft)
+	}
+	Key::Char('f') => {
+	    return Ok(MoveRight)
+	}	
+	Key::Enter => {
+	    term.write_line("")?
+	},
+	_ => {},
+    }
+
+    // If we've made it this far do nothing
+    return Ok(DoNo)
+}
+
+// Core functionality
+fn main() -> Result<()> {
+    // Terminal abstraction 
+    let term = Term::stdout();
+    term.clear_screen()?;
+    term.show_cursor()?;
+
+    // Starting window and starting frame
+    let (mut win, mut aframe): (Window, Frame) = startup(&term)?;
+
+    // We haven't interrupted yet
+    let mut clean = true;
+    // Default action is to do nothing
+    let mut act = DoNo;
+    while clean {
+	// Get action from user input
+	act = handle_keypress(&term)?;
+	// Handle actions
+	clean = win.execute(act, &term)?;
+    }
+
+    // Exit successfully
+    Ok(())
+}

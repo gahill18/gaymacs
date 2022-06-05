@@ -1,0 +1,38 @@
+use std::io::Result;
+
+// The individual frames that can be displayed in the window
+#[derive(Debug,Clone)]
+pub struct Frame {
+    id: u16,           // unique identifier and ordering
+    name: String,      // name of the frame that will display in mini
+    buf: String,       // buffer contents (the text we're editing)
+}
+
+
+// Takes a unique id, frame name, and starting buffer text, and returns new frame
+pub fn init_frame(uid: u16, n: String, b: String) -> Frame {
+    return Frame {
+	id: uid,
+	name: n,
+	buf: b,
+    }
+}
+
+// Where you actually edit the text
+impl Frame {
+    // Getter for name
+    pub fn name(&self) -> String {
+	return self.name.clone()
+    }
+
+    // Getter for text
+    pub fn text(&self) -> String {
+	return self.buf.clone()
+    }
+
+    // Print to the terminal
+    pub fn print(&self, term: &console::Term) -> Result<()> {
+	term.write_line(&self.text())?;
+	Ok(())
+    }
+}
