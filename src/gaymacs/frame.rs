@@ -2,7 +2,7 @@ use std::io::Result;
 use std::io::prelude::*;
 use std::fs::File;
 use std::path::Path;
-use console::{Term, Key};
+use console::Term;
 
 use crate::gaymacs::mini::MiniBuf;
 
@@ -44,30 +44,32 @@ impl Frame {
     // Set the path variable so save works correctly
     pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<bool> {
 	self.path = Some(p);
-	mbuf.show_success(format!("path set as {:?}", self.path));
+	let s_text = format!("path set as {:?}", self.path);
+	mbuf.show_success(s_text, &self.term)?;
 	Ok(true)
     }
 
     // Print to the terminal
     pub fn print(&self) -> Result<bool> {
-	&self.term.write_line(&self.text())?;
+	let _ = &self.term.write_line(&self.text());
 	Ok(true)
     }
 
     // Clear the current buffer
     pub fn clear_buf(&mut self) -> Result<bool> {
 	self.buf = String::from("");
-	&self.term.clear_screen()?;
+	let _ = &self.term.clear_screen()?;
 	Ok(true)
     }
 
     pub fn backspace(&mut self) -> Result<bool> {
 	let _c = self.buf.pop();
+	println!("DEBUG: backspace");
 	Ok(true)
     }
 
-    pub fn insert(&mut self, s: Key) -> Result<bool> {
-	self.buf = format!("{}{:?}", &self.buf, s);
+    pub fn insert(&mut self, s: char) -> Result<bool> {
+	self.buf = format!("{}{}", &self.buf, s);
 	Ok(true)
     }
 
@@ -83,28 +85,28 @@ impl Frame {
 		// Format the path text so we can read it
 		let p = Path::new(path);
 		// Attempt to open file 
-		let mut file = match File::create(&path) {
+		match File::create(&p) {
 		    // If we opened the file, try to write the buffer contents
 		    Ok(mut file) => match file.write_all(&self.buf.as_bytes()) {
-			Ok(i) => {
-			    println!("DEBUG: file saved");
-			    Ok(true) // Success!
+			Ok(s) => {
+			    //Show success
+			    let s_text = format!("saved in {:?}",p);
+			    mbuf.show_success(s_text, &self.term)
 			},
-			Err(s) => mbuf.show_err(s), // Show the error
+			Err(s) =>
+			    //Show error
+			    mbuf.show_err(s.to_string(), &self.term),
 		    },
 		    // If we failed to open the file, show the error in mini
-		    Err(s) => mbuf.show_err(s),
-		};
-		
-		// If we made it this far, no problems
-		Ok(true)
+		    Err(s) => mbuf.show_err(s.to_string(), &self.term),
+		}
 	    },
 	}
     }
 
     // Save the buffer in a new location obtained from the user
     pub fn save_as(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	self.term.write_line("Save as: ");
+	self.term.write_line("Save as: ")?;
 	self.path = Some(self.term.read_line()?);
 	self.save(mbuf)
     }

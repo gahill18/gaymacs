@@ -21,8 +21,8 @@ fn startup(term: &Term) -> Result<(Window, Frame)> {
     let mut init_win: Window = init_win(aframe.clone(), term);
     
     aframe.print()?;           // Show the text of the first frame
-    init_win.ls_frames()?;     // List the frames
-    init_win.popup_mini()?;    // Show the minibuffer text
+//    init_win.ls_frames()?;     // List the frames
+//    init_win.popup_mini()?;    // Show the minibuffer text
     
     
     Ok((init_win, aframe))     // Return the starting window and starting frame
@@ -47,8 +47,9 @@ fn main() -> Result<()> {
     while clean {                               // If no interrupts
 	act = handler.handle_keypress(&term)?;	// Get action from user input
 	clean = win.execute(act)?;	        // Handle actions
-	win.refresh();
     }
+
+    // TODO: Separate into navigation and edit modules
 
     // Exit successfully
     Ok(()) 

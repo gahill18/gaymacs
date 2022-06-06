@@ -14,24 +14,31 @@
 ** Frames
    
 *** DONE Create initial data structures and roadmap
-*** INDEV User writes to buffer
-*** DONE User clears buffer
-*** DONE When they save (certain keypress) contents of buffer writes to file
+*** DONE User writes to buffer
+*** DONE User writes to buffer in a pretty way
+*** DONE User clears/deletes buffer
+*** DONE When they save/save-as contents of buffer writes to file
 *** DONE User can move the cursor around the tui
 
 ** Minibuffer
 
-*** TODO Popup on bottom of screen on keypress or alert
-*** TODO Print readout of stderr
-*** TODO Execute native functions
-*** TODO Execute user functions
+*** DONE Mini pops on keypress
+*** DONE Mini stores readouts of errors
+*** TODO Mini pops on error
+*** TODO Mini executes native functions
+*** TODO Mini executes user functions
 
 
 ** Window Management
    
-*** TODO Split window into multiple frames
-*** TODO resizable frames
-*** TODO floating frames AND/OR tiling frames
+*** TODO Windows split into multiple frames
+*** TODO Frames are resizables
+*** TODO Frames are floating AND/OR tiling
+
+** General Project Management
+
+*** TODO Clean up module structure
+*** TODO Improve documentation    
 
 
 * How To Get Started

@@ -8,7 +8,7 @@ pub struct Handler {
     keys: HashMap<String, Action>,
 }
 
-// Generates a default handler
+// Generates a handler
 pub fn init_handler() -> Handler {
     let mut ks: HashMap<String, Action> = HashMap::new();
     
@@ -35,10 +35,12 @@ impl Handler {
 	let raw_k = term.read_key()?;
 	let k = parse_key(raw_k);
 
+	// Make sure its a valid key
 	if self.keys.contains_key(&k) {
-	    Ok(self.keys[&k])
+	    Ok(self.keys[&k])              // If valid, return associated action
 	} else {
-	    Ok(DoNo)
+	    println!("DEBUG: Not valid key press: {:?}", k);
+	    Ok(DoNo)                       // Do nothing
 	}
     }
 }
