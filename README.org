@@ -15,11 +15,11 @@
    
 *** DONE Create initial data structures and roadmap
 *** DONE User writes to buffer
-*** INDEV User writes to frame buffer in a pretty way
+*** DONE User writes to frame buffer in a prettier way
 *** DONE User clears/deletes buffer
 *** DONE When they save/save-as contents of buffer writes to file
 *** DONE Change filepath with keypress
-*** INDEV Frame loads file with keypress
+*** DONE Frame loads file with keypress
 *** TODO User can move the cursor around the tui
 
 ** Minibuffer
