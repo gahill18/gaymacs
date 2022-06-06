@@ -1,7 +1,7 @@
 #+TITLE: GAYMACS, a rusty emacs-inspired text editor
 #+AUTHOR: Garrett Hill
 #+EMAIL: gahill2018@protonmail.com
-#+OPTIONS: toc:nil, num:nil
+#+OPTIONS: toc:nil, num:nil, tasks:t
 
 * Intro
 
@@ -15,7 +15,7 @@
    
 *** DONE Create initial data structures and roadmap
 *** TODO User writes to buffer
-*** TODO When they save (certain keypress) contents of buffer writes to file
+*** DONE When they save (certain keypress) contents of buffer writes to file
 *** DONE User can move the cursor around the tui
 
 ** Minibuffer

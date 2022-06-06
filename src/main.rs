@@ -17,16 +17,16 @@ fn startup(term: &Term) -> Result<(Window, Frame)> {
     // Frame's Initial Buffer text
     let fibuf: String = String::from("Splash!");
     // Starting frame with no file (scratch buff)
-    let mut aframe: Frame = init_frame(0, fname, fibuf, None);
+    let mut aframe: Frame = init_frame(0, fname, fibuf, None, term);
     // starting window
-    let mut init_win: Window = init_win(aframe.clone());
+    let mut init_win: Window = init_win(aframe.clone(), term);
     
     // List the frames
-    init_win.ls_frames(&term)?;
+    init_win.ls_frames()?;
     // Show the text of the first frame
-    aframe.print(&term)?;
+    aframe.print()?;
     // Show the minibuffer text
-    init_win.popup_mini(&term)?;
+    init_win.popup_mini()?;
     
     // Return the starting window and starting frame
     return Ok((init_win, aframe))
@@ -46,9 +46,9 @@ fn main() -> Result<()> {
 
     let mut clean = true;                       // We haven't interrupted yet
     let mut act = DoNo;                         // Default action is to do nothing
-    while clean {
+    while clean {                               // If no interrupts
 	act = handle_keypress(&term)?;	        // Get action from user input
-	clean = win.execute(act, &term)?;	// Handle actions
+	clean = win.execute(act)?;	        // Handle actions
     }
 
     // Exit successfully

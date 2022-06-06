@@ -1,5 +1,5 @@
 (undo-tree-save-format-version . 1)
-"2a371663f20e28a7d7733c7c84c407b371fcfff2"
+"def13ed4673483d83784025b49ad3fe7db78bc15"
 [nil nil nil nil (25244 3326 502187 408000) 0 nil]
 ([nil nil ((1 . 8) (t 25243 57466 442724 303000)) nil (25244 3326 502185 915000) 0 nil])
 ([nil nil ((#("e" 0 1 (face org-meta-line font-lock-fontified t fontified t)) . -7) (undo-tree-id0 . -1) (undo-tree-id1 . -1) (undo-tree-id2 . -1) (undo-tree-id3 . -1) (undo-tree-id4 . -1) (undo-tree-id5 . -1) (undo-tree-id6 . -1) (undo-tree-id7 . -1) (undo-tree-id8 . -1) 8) nil (25244 3326 502183 310000) 0 nil])
@@ -270,5 +270,8 @@ nil
 ([nil nil ((#("
 " 0 1 (fontified t)) . -463) (undo-tree-id562 . -1) (undo-tree-id563 . -1) (undo-tree-id564 . -1) (undo-tree-id565 . -1) (undo-tree-id566 . -1) (undo-tree-id567 . -1) (undo-tree-id568 . -1) (undo-tree-id569 . -1) (undo-tree-id570 . -1) (undo-tree-id571 . -1) (undo-tree-id572 . -1) (undo-tree-id573 . -1) (undo-tree-id574 . -1) (undo-tree-id575 . -1) (undo-tree-id576 . -1) (undo-tree-id577 . -1) (undo-tree-id578 . -1) (undo-tree-id579 . -1) (undo-tree-id580 . -1) (undo-tree-id581 . -1) (undo-tree-id582 . -1) (undo-tree-id583 . -1) (undo-tree-id584 . -1) (undo-tree-id585 . -1) (undo-tree-id586 . -1) (undo-tree-id587 . -1) (undo-tree-id588 . -1) (undo-tree-id589 . -1) (undo-tree-id590 . -1) (undo-tree-id591 . -1) (undo-tree-id592 . -1) (undo-tree-id593 . -1) (undo-tree-id594 . -1) (undo-tree-id595 . -1) (undo-tree-id596 . -1) (undo-tree-id597 . -1) (undo-tree-id598 . -1) (undo-tree-id599 . -1) (undo-tree-id600 . -1) (undo-tree-id601 . -1) (undo-tree-id602 . -1) (undo-tree-id603 . -1) (undo-tree-id604 . -1) (undo-tree-id605 . -1) (undo-tree-id606 . -1) (undo-tree-id607 . -1) (undo-tree-id608 . -1) (undo-tree-id609 . -1) (undo-tree-id610 . -1) 464) nil (25244 50015 903620 143000) 0 nil])
 ([nil nil ((#("TODO" 0 4 (fontified t face org-todo)) . 576) (undo-tree-id635 . -4) (t 25244 50015 915401 172000)) nil (25244 50020 159162 419000) 0 nil])
-([nil current ((576 . 580)) nil (25244 50020 159144 766000) 0 nil])
+([nil nil ((576 . 580)) nil (25244 50020 159144 766000) 0 nil])
+([nil nil ((139 . 148) (t 25244 50020 172462 453000)) nil (25244 52969 287537 723000) 0 nil])
+([nil nil ((#("O" 0 1 (fontified t face org-level-3)) . 508) (#("D" 0 1 (fontified t face org-level-3)) . 508) (#("O" 0 1 (fontified t face org-level-3)) . 508) (#("T" 0 1 (fontified t face org-todo)) . 508) (t 25244 52969 300621 914000)) nil (25245 61960 452207 355000) 0 nil])
+([nil current ((508 . 512)) nil (25245 61960 452200 482000) 0 nil])
 nil

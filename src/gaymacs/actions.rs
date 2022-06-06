@@ -4,6 +4,7 @@ pub enum Action {
     MoveDown,
     MoveLeft,
     MoveRight,
+    SetActiveFilePath,
     PrintMini,
     Quit,
     Save,
