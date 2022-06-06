@@ -41,11 +41,54 @@ impl Frame {
 	self.buf.clone()
     }
 
+    pub fn path(&self) -> Option<String> {
+	self.path.clone()
+    }
+
     // Set the path variable so save works correctly
     pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<bool> {
 	self.path = Some(p);
 	let s_text = format!("path set as {:?}", self.path);
 	mbuf.show_success(s_text, &self.term)?;
+	Ok(true)
+    }
+
+    // Load a file into buffer
+    pub fn load_from_path(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	// Make sure we have a valid path
+	match &self.path {
+	    // Path is valid!
+	    Some(p) => {
+		let path = Path::new(&p);
+		// Try to open the path
+		match &mut File::open(&path) {
+		    // We opened it!
+		    Ok(file) => {
+			let mut fcontents = String::new();
+			// Try to read the file
+			match file.read_to_string(&mut fcontents) {
+			    // We read it!
+			    Ok(_)  => {
+				self.buf = fcontents.clone();
+				mbuf.show_success(fcontents, &self.term)?
+			    },
+			    // We didn't read it :(
+			    Err(s) => mbuf.show_err(s.to_string(), &self.term)?,
+			};
+		    },
+		    // Didn't open it :(
+		    Err(s)   => {
+			mbuf.show_err(s.to_string(), &self.term)?;
+		    },
+		}
+	    },
+	    // No path :(
+	    None   => {
+		let err_text = format!("no filepath for buffer {:?}", self.name);
+		mbuf.show_err(err_text, &self.term)?;
+	    },
+	}
+	
 	Ok(true)
     }
 
@@ -87,7 +130,7 @@ impl Frame {
 		// Attempt to open file 
 		match File::create(&p) {
 		    // If we opened the file, try to write the buffer contents
-		    Ok(mut file) => match file.write_all(&self.buf.as_bytes()) {
+		    Ok(mut file) => match file.write_all(self.buf.as_bytes()) {
 			Ok(s) => {
 			    //Show success
 			    let s_text = format!("saved in {:?}",p);

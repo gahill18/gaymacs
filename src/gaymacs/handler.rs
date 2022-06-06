@@ -23,6 +23,7 @@ pub fn init_handler() -> Handler {
     ks.insert(String::from("MoveLeft")         ,MoveLeft);
     ks.insert(String::from("MoveRight")        ,MoveRight);
     ks.insert(String::from("SetActiveFilePath"),SetActiveFilePath);
+    ks.insert(String::from("LoadFromFilePath") ,LoadFromFilePath);
     ks.insert(String::from("Save")             ,Save);
     ks.insert(String::from("PrintMini")        ,PrintMini);
 
@@ -36,14 +37,14 @@ impl Handler {
     // Logic for user input in stdin
     pub fn handle_keypress(&self, mbuf: &mut MiniBuf, term: &Term) ->  Result<Action> {
 	let raw_k = term.read_key()?;
-	let k = parse_key(raw_k);
+	let k = parse_key(raw_k, mbuf, term);
 
 	// Make sure its a valid key
 	if self.keys.contains_key(&k) {
 	    Ok(self.keys[&k])              // If valid, return associated action
 	} else {
 	    let err_text = format!("DEBUG: Not valid key press: {:?}", k); 
-	    mbuf.show_err(err_text, term);
+	    mbuf.show_err(err_text, term)?;
 	    Ok(DoNo)                       // Do nothing
 	}
     }
@@ -51,7 +52,7 @@ impl Handler {
 
 // Go from a console::Key to String
 // See https://docs.rs/console/0.15.0/console/enum.Key.html
-pub fn parse_key(raw_k: Key) -> String {
+pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
     match raw_k {
 	Key::Escape => {
 	    String::from("ClearBuf")
@@ -77,6 +78,9 @@ pub fn parse_key(raw_k: Key) -> String {
 	Key::Char('\u{c}') => { // C-l
 	    String::from("SetActiveFilePath")
 	}
+	Key::Char('\u{12}') => { // C-r
+	    String::from("LoadFromFilePath")
+	}
 	Key::Char('\u{13}') => { // C-s
 	    String::from("Save")
 	},
@@ -84,7 +88,8 @@ pub fn parse_key(raw_k: Key) -> String {
 	    String::from("PrintMini")
 	}
 	k => { // Anything else
-	    println!("DEBUG: Read key {:?}",k);
+	    let err_text = format!("Unrecognized keypress {:?}", k);
+	    mbuf.show_err(err_text, term);
 	    String::from("DoNo")
 	},
     }

@@ -7,6 +7,7 @@ pub enum Action {
     InsertMode,
     ClearBuf,
     SetActiveFilePath,
+    LoadFromFilePath,
     PrintMini,
     Quit,
     Save,

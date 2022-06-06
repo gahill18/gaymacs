@@ -21,9 +21,8 @@ fn startup(term: &Term, handler: &Handler) -> Result<(Window, Frame)> {
     let mut init_win: Window = init_win(aframe.clone(), term, handler);
     
     aframe.print()?;           // Show the text of the first frame
-//    init_win.ls_frames()?;     // List the frames
-//    init_win.popup_mini()?;    // Show the minibuffer text
-    
+    // init_win.ls_frames()?;     // List the frames
+    // init_win.popup_mini()?;    // Show the minibuffer text
     
     Ok((init_win, aframe))     // Return the starting window and starting frame
 }
@@ -43,14 +42,15 @@ fn main() -> Result<()> {
     // Starting window and starting frame
     let (mut win, mut aframe): (Window, Frame) = startup(&term, &handler)?;
 
-
-    let mut clean = true;                       // We haven't interrupted yet
-    let mut act = DoNo;                         // Default action is to do nothing
+    // We haven't interrupted yet
+    let mut clean = true;
+    // Default action is to do nothing
+    let mut act = DoNo;                         
 
     // If no interrupts
     while clean {                               
 	// Get action from user input
-	act = handler.handle_keypress(&mut win.mini().clone(), &term)?;
+	act =  win.handle_keypress()?;
 	// Handle actions
 	clean = win.execute(act)?;	        
     }

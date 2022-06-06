@@ -10,10 +10,8 @@ pub struct MiniBuf {
 impl MiniBuf {
     // Generate a minibuffer from a string
     pub fn from(s: &str) -> MiniBuf {
-	let mut bs: Vec<String> = Vec::new();
-	bs.push(String::from(s));
-
-	let mut es: Vec<String> = Vec::new();
+	let bs: Vec<String> = vec![String::from(s)];
+	let es: Vec<String> = Vec::new();
 
 	// Return established minibuf
 	MiniBuf {
@@ -32,7 +30,7 @@ impl MiniBuf {
     // Update the contents of the minibuffer to show the current error
     pub fn show_err(&mut self, e: String, term: &Term) -> Result<bool> {
 	self.errs.push(e.clone());
-	term.write_line(&e);
+	term.write_line(&e)?;
 	Ok(true)
     }
 
@@ -40,7 +38,7 @@ impl MiniBuf {
     // execution
     pub fn show_success(&mut self, s: String, term: &Term) -> Result<bool> {
 	self.outs.push(s.clone());
-	term.write_line(&s);
+	term.write_line(&s)?;
 	Ok(true)
     }
 }

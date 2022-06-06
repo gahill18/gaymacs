@@ -16,8 +16,7 @@ pub struct Window {
 
 // Create a new default window
 pub fn init_win(def_frame: Frame, t: &Term, h: &Handler) -> Window {
-    let mut fs: Vec<Frame> = Vec::new();
-    fs.push(def_frame.clone());
+    let mut fs: Vec<Frame> = vec![def_frame.clone()];
 
     Window {
 	frames:  fs,
@@ -54,6 +53,7 @@ impl Window {
 	&self.aframe
     }
 
+    // Return the minibuffer
     pub fn mini(&mut self) -> &MiniBuf {
 	&self.mbuf
     }
@@ -67,7 +67,7 @@ impl Window {
     // Ask the user for a file location
     // The file doesn't have to exist, but the directory its in does
     pub fn get_path_from_user(&mut self) -> Result<bool> {
-	&self.term.write_line("Desired filepath:");
+	let _ = &self.term.write_line("Desired filepath:");
 	let path = self.term.read_line()?;
 	self.aframe.set_path(path, &mut self.mbuf)?;
 	Ok(true)
@@ -78,8 +78,6 @@ impl Window {
 	let mut intrpt = false;
 	// As long as no keyboard interrupts we can insert
 	while !intrpt {
-	    // Update the screen		
-	    let _ = &self.refresh();
 	    match self.term.read_key()? {
 		Key::Escape => {		// Exit insert mode
 		    intrpt = true;
@@ -99,9 +97,15 @@ impl Window {
 		    self.mbuf.show_err(error_text, &self.term)?;
 		},
 	    };
+	    // Update the screen		
+	    let _ = &self.refresh();
 	}
 	
 	Ok(true)
+    }
+
+    pub fn handle_keypress(&mut self) -> Result<Action> {
+	self.handler.handle_keypress(&mut self.mbuf, &self.term)
     }
 
     // Execute the commands that were passed by the user
@@ -125,20 +129,16 @@ impl Window {
 		// Enter insert mode
 		self.insert_mode()
 	    }
-	    MoveUp => {
-		self.term.move_cursor_up(1)?;
+	    MoveUp => { // TODO
 		Ok(true)
 	    },
-	    MoveDown => {
-		self.term.move_cursor_down(1)?;
+	    MoveDown => { // TODO
 		Ok(true)
 	    },
-	    MoveLeft => {
-		self.term.move_cursor_left(1)?;
+	    MoveLeft => { // TODO
 		Ok(true)
 	    },
-	    MoveRight => {
-		self.term.move_cursor_right(1)?;
+	    MoveRight => { // TODO
 		Ok(true)
 	    },
 	    PrintMini => {
@@ -147,6 +147,9 @@ impl Window {
 	    SetActiveFilePath => {
 		self.get_path_from_user()
 	    },
+	    LoadFromFilePath => {
+		self.aframe.load_from_path(&mut self.mbuf)
+	    }
 	    DoNo => {
 		// Don't do anything
 		Ok(true)
@@ -154,7 +157,7 @@ impl Window {
 	    c => {
 		// Don't crash, just tell what went wrong
 		let error_text = format!("failed to execute {:?}", c);
-		self.mbuf.show_err(error_text, &self.term);
+		self.mbuf.show_err(error_text, &self.term)?;
 		Ok(true)
 	    }
 	}
