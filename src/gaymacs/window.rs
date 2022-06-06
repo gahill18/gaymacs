@@ -1,7 +1,7 @@
 use std::io::Result;
 use console::{Term, Key};
 
-use crate::{Frame, Action, Action::*};
+use crate::{*, Action::*};
 use crate::gaymacs::mini::MiniBuf;
 
 // The entire window to be displayed in the terminal
@@ -10,18 +10,21 @@ pub struct Window {
     frames: Vec<Frame>, // List of all frames
     aframe: Frame,      // Current Active frame
     mbuf:   MiniBuf,    // Minibuffer
-    term:   Term        // Terminal to manage windows in
+    term:   Term,       // Terminal to manage windows in
+    handler: Handler,   // Handler for keypresses
 }
 
 // Create a new default window
-pub fn init_win(def_frame: Frame, t: &Term) -> Window {
+pub fn init_win(def_frame: Frame, t: &Term, h: &Handler) -> Window {
     let mut fs: Vec<Frame> = Vec::new();
     fs.push(def_frame.clone());
-    return Window {
-	frames: fs,
-	aframe: def_frame,
-	mbuf:   MiniBuf::from("outs"),
-	term:   t.clone(),
+
+    Window {
+	frames:  fs,
+	aframe:  def_frame,
+	mbuf:    MiniBuf::from("outs"),
+	term:    t.clone(),
+	handler: h.clone(),
     }
 }
 
@@ -47,8 +50,12 @@ impl Window {
     }
 
     // Return the current active frame
-    pub fn get_aframe(&mut self) -> &Frame {
+    pub fn aframe(&mut self) -> &Frame {
 	&self.aframe
+    }
+
+    pub fn mini(&mut self) -> &MiniBuf {
+	&self.mbuf
     }
 
     // Display the contents of the minibuffer
@@ -66,13 +73,13 @@ impl Window {
 	Ok(true)
     }
 
+    // Handle text insertion/deletion
     pub fn insert_mode(&mut self) -> Result<bool> {
-	
 	let mut intrpt = false;
-
 	// As long as no keyboard interrupts we can insert
 	while !intrpt {
-	    let _ = &self.refresh();                    // Update the screen		
+	    // Update the screen		
+	    let _ = &self.refresh();
 	    match self.term.read_key()? {
 		Key::Escape => {		// Exit insert mode
 		    intrpt = true;
@@ -82,13 +89,13 @@ impl Window {
 		}
 		Key::Enter => {
 		    self.aframe.insert('\n')?;
-		}
+		}	
 		// Add the character to the buffer
 		Key::Char(c) => {
 		    self.aframe.insert(c)?;
 		}
-		c => {
-		    let error_text = format!("Didn't recognize key {:?}",c);
+		k => {
+		    let error_text = format!("Didn't recognize key {:?}",k);
 		    self.mbuf.show_err(error_text, &self.term)?;
 		},
 	    };
@@ -107,12 +114,15 @@ impl Window {
 		Ok(false)
 	    },
 	    Save => {
+		// Save the current frame
 		self.aframe.save(&mut self.mbuf)
 	    },
 	    ClearBuf => {
+		// Wipe the current frame's buffer
 		self.aframe.clear_buf()
 	    }
 	    InsertMode => {
+		// Enter insert mode
 		self.insert_mode()
 	    }
 	    MoveUp => {

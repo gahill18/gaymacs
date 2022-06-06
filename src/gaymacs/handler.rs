@@ -1,9 +1,12 @@
 use std::io::Result;
 use std::collections::HashMap;
 use console::{Term, Key};
+
 use crate::{Action, Action::*};
+use crate::gaymacs::mini::MiniBuf;
 
 // The Handler will handle logic flow from user
+#[derive(Debug,Clone)]
 pub struct Handler {
     keys: HashMap<String, Action>,
 }
@@ -31,7 +34,7 @@ pub fn init_handler() -> Handler {
 
 impl Handler {
     // Logic for user input in stdin
-    pub fn handle_keypress(&self, term: &Term) ->  Result<Action> {
+    pub fn handle_keypress(&self, mbuf: &mut MiniBuf, term: &Term) ->  Result<Action> {
 	let raw_k = term.read_key()?;
 	let k = parse_key(raw_k);
 
@@ -39,7 +42,8 @@ impl Handler {
 	if self.keys.contains_key(&k) {
 	    Ok(self.keys[&k])              // If valid, return associated action
 	} else {
-	    println!("DEBUG: Not valid key press: {:?}", k);
+	    let err_text = format!("DEBUG: Not valid key press: {:?}", k); 
+	    mbuf.show_err(err_text, term);
 	    Ok(DoNo)                       // Do nothing
 	}
     }

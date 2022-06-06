@@ -15,7 +15,7 @@
    
 *** DONE Create initial data structures and roadmap
 *** DONE User writes to buffer
-*** DONE User writes to buffer in a pretty way
+*** TODO User writes to buffer in a pretty way
 *** DONE User clears/deletes buffer
 *** DONE When they save/save-as contents of buffer writes to file
 *** DONE User can move the cursor around the tui
@@ -24,7 +24,7 @@
 
 *** DONE Mini pops on keypress
 *** DONE Mini stores readouts of errors
-*** TODO Mini pops on error
+*** DONE Mini pops on error
 *** TODO Mini executes native functions
 *** TODO Mini executes user functions
 
@@ -38,11 +38,17 @@
 ** General Project Management
 
 *** TODO Clean up module structure
-*** TODO Improve documentation    
+*** TODO Improve documentation
+*** TODO Satisfy clippy    
 
 
 * How To Get Started
 
-** TODO Instructions on compiling from source
+** TODO Instructions on running from source
+
+   1. Clone this git repo
+   2. From root, run "cargo run"
 
 ** TODO Instructions on just jumping in :)
+
+   See above!

@@ -11,14 +11,14 @@ use crate::gaymacs::actions::{Action, Action::*};
 use crate::gaymacs::handler::*;
 
 // Setup the starting conditions for the editor
-fn startup(term: &Term) -> Result<(Window, Frame)> {
+fn startup(term: &Term, handler: &Handler) -> Result<(Window, Frame)> {
     let fname: String = String::from("*scratch*");  // Frame Name
     let fibuf: String = String::from("Splash!");    // Frame's Initial Buffer text
 
     // Starting frame with no file (scratch buf)
     let mut aframe: Frame = init_frame(0, fname, fibuf, None, term);
     // starting window
-    let mut init_win: Window = init_win(aframe.clone(), term);
+    let mut init_win: Window = init_win(aframe.clone(), term, handler);
     
     aframe.print()?;           // Show the text of the first frame
 //    init_win.ls_frames()?;     // List the frames
@@ -37,16 +37,22 @@ fn main() -> Result<()> {
     term.clear_screen()?;
     term.show_cursor()?;
 
-    // Starting window and starting frame
-    let (mut win, mut aframe): (Window, Frame) = startup(&term)?;
     // Get the event handler (default or user provided)
     let handler: Handler = init_handler();
 
+    // Starting window and starting frame
+    let (mut win, mut aframe): (Window, Frame) = startup(&term, &handler)?;
+
+
     let mut clean = true;                       // We haven't interrupted yet
     let mut act = DoNo;                         // Default action is to do nothing
-    while clean {                               // If no interrupts
-	act = handler.handle_keypress(&term)?;	// Get action from user input
-	clean = win.execute(act)?;	        // Handle actions
+
+    // If no interrupts
+    while clean {                               
+	// Get action from user input
+	act = handler.handle_keypress(&mut win.mini().clone(), &term)?;
+	// Handle actions
+	clean = win.execute(act)?;	        
     }
 
     // TODO: Separate into navigation and edit modules

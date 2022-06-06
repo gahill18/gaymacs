@@ -1,7 +1,7 @@
 use std::io::*;
 use console::Term;
 
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct MiniBuf {
     outs: Vec<String>,            // Text contents of minibuffer
     errs: Vec<String>,      // List of past errors
@@ -14,7 +14,8 @@ impl MiniBuf {
 	bs.push(String::from(s));
 
 	let mut es: Vec<String> = Vec::new();
-	
+
+	// Return established minibuf
 	MiniBuf {
 	    outs: bs,
 	    errs: es,
