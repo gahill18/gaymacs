@@ -2,7 +2,7 @@ use std::io::Result;
 use std::io::prelude::*;
 use std::fs::File;
 use std::path::Path;
-use console::Term;
+use console::{Term, Key};
 
 use crate::gaymacs::mini::MiniBuf;
 
@@ -41,8 +41,10 @@ impl Frame {
 	self.buf.clone()
     }
 
-    pub fn set_path(&mut self, p: String) -> Result<bool> {
+    // Set the path variable so save works correctly
+    pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<bool> {
 	self.path = Some(p);
+	mbuf.show_success(format!("path set as {:?}", self.path));
 	Ok(true)
     }
 
@@ -52,8 +54,25 @@ impl Frame {
 	Ok(true)
     }
 
+    // Clear the current buffer
+    pub fn clear_buf(&mut self) -> Result<bool> {
+	self.buf = String::from("");
+	&self.term.clear_screen()?;
+	Ok(true)
+    }
+
+    pub fn backspace(&mut self) -> Result<bool> {
+	let _c = self.buf.pop();
+	Ok(true)
+    }
+
+    pub fn insert(&mut self, s: Key) -> Result<bool> {
+	self.buf = format!("{}{:?}", &self.buf, s);
+	Ok(true)
+    }
+
     // Write the buffer to the saved filepath
-    pub fn save(&self, mbuf: &mut MiniBuf) -> Result<bool> {
+    pub fn save(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
 	match &self.path {
 	    // If no file has been initialized, do so now
 	    None => {	    
@@ -84,8 +103,9 @@ impl Frame {
     }
 
     // Save the buffer in a new location obtained from the user
-    pub fn save_as(&self, mbuf: &MiniBuf) -> Result<bool> {
-	println!("DEBUG: Save As Started");
-	return Ok(true)
+    pub fn save_as(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	self.term.write_line("Save as: ");
+	self.path = Some(self.term.read_line()?);
+	self.save(mbuf)
     }
 }

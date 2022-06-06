@@ -2,22 +2,28 @@ use std::io::*;
 
 #[derive(Debug)]
 pub struct MiniBuf {
-    buf: String,     // Text contents of minibuffer
-    errs: Vec<Error>, // List of past errors
+    outs: Vec<String>,            // Text contents of minibuffer
+    errs: Vec<Error>,      // List of past errors
 }
 
 impl MiniBuf {
     // Generate a minibuffer from a string
     pub fn from(s: &str) -> MiniBuf {
-	return MiniBuf {
-	    buf: String::from(s),
-	    errs: Vec::new(),
+	let mut bs: Vec<String> = Vec::new();
+	bs.push(String::from(s));
+
+	let mut es: Vec<Error> = Vec::new();
+	
+	MiniBuf {
+	    outs: bs,
+	    errs: es,
 	}
     }
 
     // Write the current contents of the minibuffer to the terminal
     pub fn print(&self, term: &console::Term) -> Result<()> {
-	term.write_line(&self.buf)?;
+	term.write_line(&format!("{:?}", &self.outs))?;
+	term.write_line(&format!("{:?}", &self.errs))?;	
 	Ok(())
     }
 
@@ -30,7 +36,7 @@ impl MiniBuf {
     // Update the contents of the minibuffer to show the output of a successfull
     // execution
     pub fn show_success(&mut self, s: String) -> Result<bool> {
-	self.buf = s;
+	self.outs.push(s);
 	Ok(true)
     }
 }

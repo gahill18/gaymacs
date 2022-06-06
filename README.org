@@ -14,7 +14,8 @@
 ** Frames
    
 *** DONE Create initial data structures and roadmap
-*** TODO User writes to buffer
+*** INDEV User writes to buffer
+*** DONE User clears buffer
 *** DONE When they save (certain keypress) contents of buffer writes to file
 *** DONE User can move the cursor around the tui
 
