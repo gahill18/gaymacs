@@ -21,9 +21,6 @@ fn startup(term: &Term, handler: &Handler) -> Result<(Window, Frame)> {
     let mut init_win: Window = init_win(aframe.clone(), term, handler);
     
     aframe.print()?;           // Show the text of the first frame
-    // init_win.ls_frames()?;     // List the frames
-    // init_win.popup_mini()?;    // Show the minibuffer text
-    
     Ok((init_win, aframe))     // Return the starting window and starting frame
 }
 
@@ -39,20 +36,16 @@ fn main() -> Result<()> {
     // Get the event handler (default or user provided)
     let handler: Handler = init_handler();
 
-    // Starting window and starting frame
-    let (mut win, mut aframe): (Window, Frame) = startup(&term, &handler)?;
+    // Active window and active frame
+    let (mut awin, mut aframe): (Window, Frame) = startup(&term, &handler)?;
 
-    // We haven't interrupted yet
-    let mut clean = true;
-    // Default action is to do nothing
-    let mut act = DoNo;                         
+    let mut clean = true;     // We haven't interrupted yet
+    let mut act = DoNo;       // Default action is to do nothing
 
     // If no interrupts
     while clean {                               
-	// Get action from user input
-	act =  win.handle_keypress()?;
-	// Handle actions
-	clean = win.execute(act)?;	        
+	act =  awin.handle_keypress()?;         // Get next action from user input
+	clean = awin.execute(act)?;	        // Handle actions
     }
 
     // TODO: Separate into navigation and edit modules

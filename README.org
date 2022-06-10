@@ -9,39 +9,37 @@
 
 * Features
 
-  So far, not much! Here's the todo/done list:
-
 ** Frames
    
-*** DONE Create initial data structures and roadmap
-*** DONE User writes to buffer
-*** DONE User writes to frame buffer in a prettier way
-*** DONE User clears/deletes buffer
-*** DONE When they save/save-as contents of buffer writes to file
-*** DONE Change filepath with keypress
-*** DONE Frame loads file with keypress
-*** TODO User can move the cursor around the tui
+*** [x] Create initial data structures and roadmap
+*** [x] User writes to buffer
+*** [x] User writes to frame buffer in a prettier way
+*** [x] User clears/deletes buffer
+*** [x] When they save/save-as contents of buffer writes to file
+*** [x] Change filepath with keypress
+*** [x] Frame loads file with keypress
+*** [ ] IN PROGRESS User can move the cursor around the tui
 
 ** Minibuffer
 
-*** DONE Mini pops on keypress
-*** DONE Mini stores readouts of errors
-*** DONE Mini pops on error
-*** TODO Mini executes native functions
-*** TODO Mini executes user functions
+*** [x] Mini pops on keypress
+*** [x] Mini stores readouts of errors
+*** [x] Mini pops on error
+*** [ ] Mini executes native functions
+*** [ ] Mini executes user functions
 
 
 ** Window Management
    
-*** TODO Windows split into multiple frames
-*** TODO Frames are resizables
-*** TODO Frames are floating AND/OR tiling
+*** [ ] Windows split into multiple frames
+*** [ ] Frames are resizables
+*** [ ] Frames are floating AND/OR tiling
 
 ** General Project Management
 
-*** TODO Clean up module structure
-*** TODO Improve documentation
-*** TODO Satisfy clippy    
+*** [ ] Clean up module structure
+*** [ ] Improve documentation
+*** [ ] Satisfy clippy    
 
 
 * How To Get Started

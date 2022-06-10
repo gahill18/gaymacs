@@ -2,21 +2,20 @@ use std::io::Result;
 use std::collections::HashMap;
 use console::{Term, Key};
 
-use crate::{Action, Action::*};
-use crate::gaymacs::mini::MiniBuf;
+use crate::{Action, gaymacs::mini::MiniBuf, Frame,};
+use crate::{Action::*,};
+// use crate::gaymacs::mini::MiniBuf;
 
 // The Handler will handle logic flow from user
 #[derive(Debug,Clone)]
 pub struct Handler {
-    keys: HashMap<String, Action>,
+    keys: HashMap <String, Action>,
 }
 
 // Generates a handler
 pub fn init_handler() -> Handler {
     let mut ks: HashMap<String, Action> = HashMap::new();
     
-    ks.insert(String::from("InsertMode")       ,InsertMode);
-    ks.insert(String::from("ClearBuf")         ,ClearBuf);
     ks.insert(String::from("Quit")             ,Quit);
     ks.insert(String::from("MoveUp")           ,MoveUp);
     ks.insert(String::from("MoveDown")         ,MoveDown);
@@ -35,35 +34,46 @@ pub fn init_handler() -> Handler {
 
 impl Handler {
     // Logic for user input in stdin
-    pub fn handle_keypress(&self, mbuf: &mut MiniBuf, term: &Term) ->  Result<Action> {
+    pub fn handle_keypress(&self, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) ->  Result<Action> {
 	let raw_k = term.read_key()?;
-	let k = parse_key(raw_k, mbuf, term);
+	let k = parse_key(raw_k.clone(), frame, mbuf, term);
 
-	// Make sure its a valid key
-	if self.keys.contains_key(&k) {
-	    Ok(self.keys[&k])              // If valid, return associated action
-	} else {
-	    let err_text = format!("DEBUG: Not valid key press: {:?}", k); 
-	    mbuf.show_err(err_text, term)?;
-	    Ok(DoNo)                       // Do nothing
+	// Check if it's a known key
+	match self.keys.contains_key(&k) {
+	    true => Ok(self.keys[&k]),
+	    false => self.unknown_keys(raw_k, frame, mbuf, term),
 	}
+    }
+
+    // Handle keys that we know are not in our handler look up table
+    fn unknown_keys(&self, raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) -> Result<Action> {
+	let success = match raw_k { 
+	    // Write the character to the buffer
+	    Key::Char(c) =>   frame.write_char(c)?,
+	    // Newline
+	    Key::Enter =>     frame.write_char('\n')?,
+	    // Delete last char
+	    Key::Backspace => frame.backspace()?,	    
+	    // Show the error text in the minibuffer and do nothing
+	    bad_k => {
+		let err_text = format!("Not valid key press: {:?}", bad_k); 
+		mbuf.show_err(err_text, term)?;
+		true
+	    },
+	};
+
+	Ok(DoNo)
     }
 }
 
 // Go from a console::Key to String
 // See https://docs.rs/console/0.15.0/console/enum.Key.html
-pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
+pub fn parse_key(raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) -> String {
     match raw_k {
-	Key::Escape => {
-	    String::from("ClearBuf")
-	}
-	Key::Char('i') => {
-	    String::from("InsertMode")
-	}
 	Key::Char('\u{11}') => { // C-q
 	    String::from("Quit")
 	},
-	Key::Char('\u{10}') => { // C-p
+	Key::Char('\u{10}') => { // C-p	    
 	    String::from("MoveUp")
 	},
 	Key::Char('\u{e}') => { // C-n
@@ -86,11 +96,11 @@ pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
 	},
 	Key::Char('\0') => { // ` (i make this char with Shift-~)
 	    String::from("PrintMini")
-	}
+	}	
 	k => { // Anything else
-	    let err_text = format!("Unrecognized keypress {:?}", k);
-	    mbuf.show_err(err_text, term);
-	    String::from("DoNo")
+	    let stxt = format!("{:?}", k);
+	    let mbuf_res = mbuf.show_success(stxt.clone(), term);
+	    stxt
 	},
     }
 }

@@ -1,7 +1,7 @@
 use std::io::Result;
-use console::{Term, Key};
+use console::Term;
 
-use crate::{*, Action::*};
+use crate::*;
 use crate::gaymacs::mini::MiniBuf;
 
 // The entire window to be displayed in the terminal
@@ -28,15 +28,21 @@ pub fn init_win(def_frame: Frame, t: &Term, h: &Handler) -> Window {
 }
 
 impl Window {
+    // Try to redraw to the terminal
     pub fn refresh(&self) -> Result<bool> {
 	self.term.clear_screen()?;
-	self.aframe.print()
+	self.aframe.print()?;
+	let (new_x,new_y) = fcur_to_tcur(self.aframe.cur(), &self.term);
+	self.term.move_cursor_to(new_x, new_y)?;
+	
+	Ok(true)
     }
     
     // Add a frame to the window
-    pub fn add_frame(&mut self, frame: Frame)  {
-	self.frames.push(frame.clone());  // Save the new frame
-	self.aframe = frame               // Switch active window to newest frame
+    pub fn add_frame(&mut self, frame: Frame) -> Result<bool> {
+	self.frames.push(frame.clone());   // Save the new frame
+	self.aframe = frame;               // Switch active window to newest frame
+	Ok(true)
     }
 
     // List the frames the window can show/switch to
@@ -48,23 +54,23 @@ impl Window {
 	Ok(true)
     }
 
-    // Return the current active frame
+    // Borrow the current active frame
     pub fn aframe(&mut self) -> &Frame {
 	&self.aframe
     }
 
-    // Return the minibuffer
+    // Borrow the minibuffer
     pub fn mini(&mut self) -> &MiniBuf {
 	&self.mbuf
     }
 
-    // Display the contents of the minibuffer
+    // Try to display the contents of the minibuffer
     pub fn popup_mini(&mut self) -> Result<bool> {
 	self.mbuf.print(&self.term)?;
 	Ok(true)
     }
 
-    // Ask the user for a file location
+    // Try to get new filepath from the user for buffer writing
     // The file doesn't have to exist, but the directory its in does
     pub fn get_path_from_user(&mut self) -> Result<bool> {
 	let _ = &self.term.write_line("Desired filepath:");
@@ -73,93 +79,45 @@ impl Window {
 	Ok(true)
     }
 
-    // Handle text insertion/deletion
-    pub fn insert_mode(&mut self) -> Result<bool> {
-	let mut intrpt = false;
-	// As long as no keyboard interrupts we can insert
-	while !intrpt {
-	    match self.term.read_key()? {
-		Key::Escape => {		// Exit insert mode
-		    intrpt = true;
-		},
-		Key::Backspace => {
-		    self.aframe.backspace()?;
-		}
-		Key::Enter => {
-		    self.aframe.insert('\n')?;
-		}	
-		// Add the character to the buffer
-		Key::Char(c) => {
-		    self.aframe.insert(c)?;
-		}
-		k => {
-		    let error_text = format!("Didn't recognize key {:?}",k);
-		    self.mbuf.show_err(error_text, &self.term)?;
-		},
-	    };
-	    // Update the screen		
-	    let _ = &self.refresh();
-	}
-	
-	Ok(true)
-    }
-
+    // Try to handle the next keypress from the user
     pub fn handle_keypress(&mut self) -> Result<Action> {
-	self.handler.handle_keypress(&mut self.mbuf, &self.term)
+	self.handler.handle_keypress(&mut self.aframe, &mut self.mbuf, &self.term)
     }
 
     // Execute the commands that were passed by the user
     pub fn execute(&mut self, act: Action) -> Result<bool> {
 	let _ = &self.refresh();                          // Update the screen
 	match act {
-	    Quit => {
-		// Move to a new line then exit
+	    // Move to a new line then exit
+	    Quit => {		
 		self.term.write_line("")?;
 		Ok(false)
 	    },
-	    Save => {
-		// Save the current frame
-		self.aframe.save(&mut self.mbuf)
-	    },
-	    ClearBuf => {
-		// Wipe the current frame's buffer
-		self.aframe.clear_buf()
-	    }
-	    InsertMode => {
-		// Enter insert mode
-		self.insert_mode()
-	    }
-	    MoveUp => { // TODO
-		Ok(true)
-	    },
-	    MoveDown => { // TODO
-		Ok(true)
-	    },
-	    MoveLeft => { // TODO
-		Ok(true)
-	    },
-	    MoveRight => { // TODO
-		Ok(true)
-	    },
-	    PrintMini => {
-		self.popup_mini()
-	    },
-	    SetActiveFilePath => {
-		self.get_path_from_user()
-	    },
-	    LoadFromFilePath => {
-		self.aframe.load_from_path(&mut self.mbuf)
-	    }
-	    DoNo => {
-		// Don't do anything
-		Ok(true)
-	    },
-	    c => {
-		// Don't crash, just tell what went wrong
+	    // "Self Documenting" oneliners (check the source files for better doc)
+	    DoNo      => Ok(true),
+	    Save      => self.aframe.save(&mut self.mbuf),
+	    MoveUp    => self.aframe.move_up(&mut self.mbuf),
+	    MoveDown  => self.aframe.move_down(&mut self.mbuf),
+	    MoveLeft  => self.aframe.move_left(&mut self.mbuf),
+	    MoveRight => self.aframe.move_right(&mut self.mbuf),
+	    PrintMini => self.popup_mini(),
+	    LoadFromFilePath  => self.aframe.load_from_path(&mut self.mbuf),
+	    SetActiveFilePath => self.get_path_from_user(),
+	    // Don't crash, just tell what went wrong		
+	    c => {  
 		let error_text = format!("failed to execute {:?}", c);
-		self.mbuf.show_err(error_text, &self.term)?;
+		self.mbuf.show_err(error_text, &self.term)?;		
 		Ok(true)
 	    }
 	}
     }
+}
+
+// Convert the frame's buffer index to the term's x/y coordinates
+fn fcur_to_tcur(i: usize, term: &Term) -> (usize,usize) {
+    let (tx,ty) = term.size();
+    println!("{},{}",tx,ty);
+    let x = i % (tx*2) as usize;
+    let y = i / (tx*2) as usize;
+    (x,y)
 }

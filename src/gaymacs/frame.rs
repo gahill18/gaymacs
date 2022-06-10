@@ -2,6 +2,8 @@ use std::io::Result;
 use std::io::prelude::*;
 use std::fs::File;
 use std::path::Path;
+
+use num::clamp;
 use console::Term;
 
 use crate::gaymacs::mini::MiniBuf;
@@ -12,6 +14,7 @@ pub struct Frame {
     id: u16,                   // unique identifier and ordering
     name: String,              // name of the frame that will display in mini
     buf: String,               // buffer contents (the text we're editing)
+    cur: usize,                // Cursor location in the buffer
     path: Option<String>,      // If this is a saved document, store its location
     term: Term,                // The console this frame is assigned to by win
 }
@@ -24,6 +27,7 @@ pub fn init_frame(uid: u16, n: String, b: String,
 	id: uid,
 	name: n,
 	buf: b,
+	cur: 1,
 	path: p,
 	term: t.clone(),
     }
@@ -41,11 +45,17 @@ impl Frame {
 	self.buf.clone()
     }
 
+    // Getter for cursor
+    pub fn cur(&self) -> usize {
+	self.cur.clone()
+    }
+
+    // Getter for path
     pub fn path(&self) -> Option<String> {
 	self.path.clone()
     }
 
-    // Set the path variable so save works correctly
+    // Set the path variable so saving works correctly
     pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<bool> {
 	self.path = Some(p);
 	let s_text = format!("path set as {:?}", self.path);
@@ -55,40 +65,33 @@ impl Frame {
 
     // Load a file into buffer
     pub fn load_from_path(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	// Make sure we have a valid path
-	match &self.path {
-	    // Path is valid!
-	    Some(p) => {
+	match &self.path {	        // Make sure we have a valid path
+	    Some(p) => {	                        // Path is valid!
 		let path = Path::new(&p);
-		// Try to open the path
-		match &mut File::open(&path) {
-		    // We opened it!
-		    Ok(file) => {
+		match &mut File::open(&path) {		// Try to open the path
+		    Ok(file) => {		        // We opened it!
 			let mut fcontents = String::new();
 			// Try to read the file
 			match file.read_to_string(&mut fcontents) {
 			    // We read it!
-			    Ok(_)  => {
+			    Ok(_)  => {                 
 				self.buf = fcontents.clone();
 				mbuf.show_success(fcontents, &self.term)?
 			    },
 			    // We didn't read it :(
 			    Err(s) => mbuf.show_err(s.to_string(), &self.term)?,
 			};
-		    },
-		    // Didn't open it :(
-		    Err(s)   => {
+		    },		    
+		    Err(s)   => {                       // Didn't open it :(
 			mbuf.show_err(s.to_string(), &self.term)?;
 		    },
 		}
-	    },
-	    // No path :(
-	    None   => {
+	    },	    
+	    None   => {                                 // No path :(
 		let err_text = format!("no filepath for buffer {:?}", self.name);
 		mbuf.show_err(err_text, &self.term)?;
 	    },
 	}
-	
 	Ok(true)
     }
 
@@ -105,14 +108,25 @@ impl Frame {
 	Ok(true)
     }
 
+    // Delete the most recent character in the buffer
     pub fn backspace(&mut self) -> Result<bool> {
-	let _c = self.buf.pop();
-	println!("DEBUG: backspace");
+	if self.cur > 0 {
+	    let i = self.cur;
+	    let _c = self.buf.remove(i-1);
+
+	    // Only update if we arent at the beginning of the string
+	    if i > 0 {
+		self.cur = i - 1;
+	    }
+	}
+		
 	Ok(true)
     }
 
-    pub fn insert(&mut self, s: char) -> Result<bool> {
-	self.buf = format!("{}{}", &self.buf, s);
+    // Add the next character to the buffer
+    pub fn write_char(&mut self, c: char) -> Result<bool> {	
+	self.buf.insert(self.cur, c);
+	self.cur = self.cur + 1;
 	Ok(true)
     }
 
@@ -132,12 +146,12 @@ impl Frame {
 		    // If we opened the file, try to write the buffer contents
 		    Ok(mut file) => match file.write_all(self.buf.as_bytes()) {
 			Ok(s) => {
-			    //Show success
+			    //Show file write success
 			    let s_text = format!("saved in {:?}",p);
 			    mbuf.show_success(s_text, &self.term)
 			},
 			Err(s) =>
-			    //Show error
+			    //Show file write error
 			    mbuf.show_err(s.to_string(), &self.term),
 		    },
 		    // If we failed to open the file, show the error in mini
@@ -152,5 +166,45 @@ impl Frame {
 	self.term.write_line("Save as: ")?;
 	self.path = Some(self.term.read_line()?);
 	self.save(mbuf)
+    }
+
+    // MOVEMENT FUNCTIONS
+
+    pub fn move_left(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	if self.buf.len() > 0 {
+	    let max = self.buf.len() - 1;
+	    let min = 1;
+	    self.cur = clamp(self.cur, min, max) - 1;
+	}
+	Ok(true)
+    }
+
+    pub fn move_right(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	if self.buf.len() > 0 {
+	    let max = self.buf.len() - 1;
+	    let min = 0;
+	    self.cur = clamp(self.cur, min, max) + 1;
+	}
+	Ok(true)
+    }
+
+    pub fn move_up(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	if self.buf.len() > 0 {
+	    let term_line_length = 1;
+	    let max = self.buf.len() - 1;
+	    let min = term_line_length;
+	    self.cur = clamp(self.cur, min, max) - term_line_length; 
+	}
+	Ok(true)
+    }
+
+    pub fn move_down(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	if self.buf.len() > 0 {
+	    let term_line_length = 1;
+	    let max = self.buf.len() - term_line_length - 1;
+	    let min = 0;
+	    self.cur = clamp(self.cur, min, max) + term_line_length;
+	}
+	Ok(true)
     }
 }
