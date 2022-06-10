@@ -11,7 +11,7 @@ impl MiniBuf {
     // Generate a minibuffer from a string
     pub fn from(s: &str) -> MiniBuf {
 	let bs: Vec<String> = vec![String::from(s)];
-	let es: Vec<String> = Vec::new();
+	let es: Vec<String> = vec![String::from("Error List")];
 
 	// Return established minibuf
 	MiniBuf {

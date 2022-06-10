@@ -53,7 +53,17 @@ impl Handler {
 	    Key::Char('\u{4}') => frame.delete()?,         // Delete in place
 	    Key::Backspace     => frame.backspace()?,	   // Delete backwards
 	    Key::Enter         => frame.newline()?,        // Newline
-	    Key::Char(c)       => frame.write_char(c)?,    // Write char to buffer
+	    // Write char to buffer if it isnt a control code
+	    Key::Char(c)       => {
+		if ! c.is_control() {
+		    frame.write_char(c)?
+		}
+		else {
+		    let err_text = format!("Not valid character: {:?}", c); 
+		    mbuf.show_err(err_text, term)?;
+		    true
+		}
+	    },
 	    bad_k => {// Show the error text in the minibuffer and do nothing
 		let err_text = format!("Not valid key press: {:?}", bad_k); 
 		mbuf.show_err(err_text, term)?;
@@ -99,7 +109,7 @@ pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
 	Key::Char('\u{13}') => { // C-s
 	    String::from("Save")
 	},
-	Key::Char('\0') => { // ` (i make this char with Shift-~)
+	Key::Char('\u{f}') => { // C-m	    
 	    String::from("PrintMini")
 	}
 	k => { // Anything else

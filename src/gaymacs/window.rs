@@ -10,6 +10,7 @@ pub struct Window {
     frames: Vec<Frame>, // List of all frames
     aframe: Frame,      // Current Active frame
     mbuf:   MiniBuf,    // Minibuffer
+    mbup:   bool,       // Show minibuffer?
     term:   Term,       // Terminal to manage windows in
     handler: Handler,   // Handler for keypresses
 }
@@ -22,6 +23,7 @@ pub fn init_win(def_frame: Frame, t: &Term, h: &Handler) -> Window {
 	frames:  fs,
 	aframe:  def_frame,
 	mbuf:    MiniBuf::from("outs"),
+	mbup:    false,
 	term:    t.clone(),
 	handler: h.clone(),
     }
@@ -33,6 +35,9 @@ impl Window {
 	// Redraw
 	self.term.clear_screen()?;
 	self.aframe.print()?;
+	if self.mbup {
+	    self.mbuf.print(&self.term);
+	}
 
 	// Update cursor
 	let (new_x,new_y) = fcur_to_tcur(self.aframe.cur(), &self.term);
@@ -48,7 +53,7 @@ impl Window {
 	Ok(true)
     }
 
-    // List the frames the window can show/switch to
+    // List the frames the window can show/switch to in the minibuffer
     pub fn ls_frames(&mut self) -> Result<bool> {
 	for frame in &self.frames {       // For every frame in the list
 	    let out = frame.name();       // Get the name of the frame
@@ -57,9 +62,9 @@ impl Window {
 	Ok(true)
     }
 
-    // Try to display the contents of the minibuffer
+    // Alternate if the mini should be shown or not
     pub fn popup_mini(&mut self) -> Result<bool> {
-	self.mbuf.print(&self.term)?;
+	self.mbup = !self.mbup;
 	Ok(true)
     }
 
@@ -121,6 +126,7 @@ impl Window {
 		Ok(true)
 	    },
 	    BOL => {
+		// Do some math to move to the beginning of the current line
 		let old_i: usize = self.aframe.cur();
 		let sub = c;
 		self.aframe.set_cur(old_i - clamp(sub, 0, old_i));
@@ -132,7 +138,8 @@ impl Window {
 	    // Don't crash, just tell what went wrong		
 	    c => {  
 		let error_text = format!("failed to execute command {:?}", c);
-		self.mbuf.show_err(error_text, &self.term)?;		
+		self.mbuf.show_err(error_text, &self.term)?;
+		self.popup_mini();
 		Ok(true)
 	    }
 	}

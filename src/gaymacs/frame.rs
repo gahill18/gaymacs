@@ -128,8 +128,7 @@ impl Frame {
     }
 
     // Add the next character to the buffer
-    pub fn write_char(&mut self, c: char) -> Result<bool> {
-	if c == '\n' { println!("DEBUG: test"); }
+    pub fn write_char(&mut self, c: char) -> Result<bool> {	
 	self.buf.insert(self.cur, c);
 	self.cur = self.cur + 1;
 	Ok(true)
@@ -137,7 +136,7 @@ impl Frame {
 
     // Add a line break to the buffer
     pub fn newline(&mut self) -> Result<bool> {
-	Ok(true)
+	self.write_char('\n')
     }
 
     // Write the buffer to the saved filepath

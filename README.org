@@ -18,7 +18,9 @@
 *** [x] When they save/save-as contents of buffer writes to file
 *** [x] Change filepath with keypress
 *** [x] Frame loads file with keypress
-*** [x] User can move the cursor around the tui
+*** [ ] INDEV User can move the cursor around the tui
+    TODO: Fix newline functionality with cursor placement
+*** [ ] Copy/Paste functionality
 
 ** Minibuffer
 
@@ -42,13 +44,27 @@
 *** [ ] Satisfy clippy    
 
 
-* How To Get Started
+* How To Get Started   
 
-** TODO Instructions on running from source
+** TODO Instructions on getting started
 
    1. Clone this git repo
    2. From root, run "cargo run"
 
-** TODO Instructions on just jumping in :)
+** TODO Keybinds
 
-   See above!
+   *Movement*
+
+    | Left  | C-b |
+    | Right | C-f |
+    | Up    | C-p |
+    | Down  | C-n |
+
+    *File Management*
+
+    | Save | C-s |
+    | Set filepath | C-l |
+
+    *UI*
+
+    | Toggle minibuffer display | C-o |
