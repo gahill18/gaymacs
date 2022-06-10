@@ -97,7 +97,7 @@ impl Window {
 	    },
 	    DoNo      => Ok(true),         // Do Nothing
 	    Save      => self.aframe.save(&mut self.mbuf), // Save the current frame
-	    MoveUp    => { // TODO: FIX
+	    MoveUp    => {
 		let (tr,tc): (u16,u16) = self.term.size();
 		let (r,c): (usize, usize) = (tr.into(), tc.into());
 		let old_i: usize = self.aframe.cur();
@@ -110,7 +110,7 @@ impl Window {
 		}
 		Ok(true)
 	    },
-	    MoveDown  => { // TODO: FIX
+	    MoveDown  => {
 		let l = self.aframe.text().len();
 		let (tr,tc): (u16,u16) = self.term.size();
 		let (r,c): (usize, usize) = (tr.into(), tc.into());

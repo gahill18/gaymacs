@@ -5,7 +5,7 @@
 
 * Intro
 
-  There's nothing quite as homoerotic as the circlejerking of the Emacs and Rust communities, of which I am a proud member. Hence, GAYMACS, an emacs inspired text editor written in Rust.
+  There's nothing quite as homoerotic as the circlejerking of the Emacs and Rust communities, and I am a proud member of both. Thus, GAYMACS, an emacs inspired text editor written in Rust.
 
 * Features
 
