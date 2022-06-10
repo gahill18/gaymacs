@@ -1,5 +1,5 @@
 (undo-tree-save-format-version . 1)
-"739b16d99778656e7bb4d9f7aa460635fc99a7af"
+"59a933f4809d4e9239e8a08c8de5f6b3797a46f7"
 [nil nil nil nil (25244 6898 973172 304000) 0 nil]
 ([nil nil ((#("g" 0 1 (fontified t)) . 237) (#("n" 0 1 (fontified t)) . 237) (#("i" 0 1 (fontified t)) . 237) (#("r" 0 1 (fontified t)) . 237) (#("t" 0 1 (fontified t)) . 237) (#("S" 0 1 (face font-lock-type-face fontified t)) . 237) (t 25244 6775 662818 955000)) nil (25244 6898 973169 619000) 0 nil])
 ([nil nil ((237 . 243)) nil (25244 6898 973166 483000) 0 nil])
@@ -1936,5 +1936,10 @@ nil
 ([nil nil ((3694 . 3695) (t 25250 37124 848726 655000)) nil (25250 37154 28275 886000) 0 nil])
 ([nil nil ((3697 . 3700)) nil (25250 37154 28274 694000) 0 nil])
 ([nil nil ((3727 . 3728)) nil (25250 37154 28273 362000) 0 nil])
-([nil current ((3730 . 3733)) nil (25250 37154 28268 673000) 0 nil])
+([nil nil ((3730 . 3733)) nil (25250 37154 28268 673000) 0 nil])
+([nil nil ((#("    println!(\"{},{}\",tx,ty);" 0 4 (fontified t) 4 12 (fontified t face rust-builtin-formatting-macro) 12 13 (fontified t face (rainbow-delimiters-depth-2-face)) 13 14 (fontified t face font-lock-string-face) 14 16 (fontified t face rust-string-interpolation) 16 17 (fontified t face font-lock-string-face) 17 19 (fontified t face rust-string-interpolation) 19 20 (fontified t face font-lock-string-face) 20 26 (fontified t) 26 27 (fontified t face (rainbow-delimiters-depth-2-face)) 27 28 (fontified t)) . 3649) (undo-tree-id12121 . -22) (undo-tree-id12122 . -22) (undo-tree-id12123 . -22) (undo-tree-id12124 . -22) (undo-tree-id12125 . -22) (undo-tree-id12126 . -22) (undo-tree-id12127 . -22) (undo-tree-id12128 . -28) (t 25250 37154 63125 943000)) nil (25250 38769 913013 877000) 0 nil])
+([nil nil ((#("
+" 0 1 (fontified t)) . -3648) (undo-tree-id12089 . -1) (undo-tree-id12090 . -1) (undo-tree-id12091 . -1) (undo-tree-id12092 . -1) (undo-tree-id12093 . -1) (undo-tree-id12094 . -1) (undo-tree-id12095 . -1) (undo-tree-id12096 . -1) (undo-tree-id12097 . -1) (undo-tree-id12098 . -1) (undo-tree-id12099 . -1) (undo-tree-id12100 . -1) (undo-tree-id12101 . -1) (undo-tree-id12102 . -1) (undo-tree-id12103 . -1) (undo-tree-id12104 . -1) (undo-tree-id12105 . -1) (undo-tree-id12106 . -1) (undo-tree-id12107 . -1) (undo-tree-id12108 . -1) (undo-tree-id12109 . -1) (undo-tree-id12110 . -1) (undo-tree-id12111 . -1) (undo-tree-id12112 . -1) (undo-tree-id12113 . -1) (undo-tree-id12114 . -1) (undo-tree-id12115 . -1) (undo-tree-id12116 . -1) (undo-tree-id12117 . -1) (undo-tree-id12118 . -1) (undo-tree-id12119 . -1) (undo-tree-id12120 . -1) 3649) nil (25250 38769 913002 265000) 0 nil])
+([nil nil ((#("x" 0 1 (fontified t)) . 3667) (undo-tree-id12129 . -1) (undo-tree-id12130 . -1) (undo-tree-id12131 . -1) (undo-tree-id12132 . -1) (undo-tree-id12133 . -1) (undo-tree-id12134 . -1) (undo-tree-id12135 . -1) (undo-tree-id12136 . -1) (t 25250 38769 947216 303000)) nil (25250 38791 798287 832000) 0 nil])
+([nil current ((3667 . 3668)) nil (25250 38791 798269 688000) 0 nil])
 nil

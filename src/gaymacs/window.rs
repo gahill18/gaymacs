@@ -116,8 +116,7 @@ impl Window {
 // Convert the frame's buffer index to the term's x/y coordinates
 fn fcur_to_tcur(i: usize, term: &Term) -> (usize,usize) {
     let (tx,ty) = term.size();
-    println!("{},{}",tx,ty);
-    let x = i % (tx*2) as usize;
+    let x = i % (ty*2) as usize;
     let y = i / (tx*2) as usize;
     (x,y)
 }
