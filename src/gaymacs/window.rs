@@ -6,7 +6,6 @@ use crate::*;
 use crate::gaymacs::mini::MiniBuf;
 
 // The entire window to be displayed in the terminal
-#[derive(Debug)]
 pub struct Window {
     frames: Vec<Frame>, // List of all frames
     aframe: Frame,      // Current Active frame
@@ -17,7 +16,7 @@ pub struct Window {
 
 // Create a new default window
 pub fn init_win(def_frame: Frame, t: &Term, h: &Handler) -> Window {
-    let mut fs: Vec<Frame> = vec![def_frame.clone()];
+    let fs: Vec<Frame> = vec![def_frame.clone()];
 
     Window {
 	frames:  fs,
@@ -58,16 +57,6 @@ impl Window {
 	Ok(true)
     }
 
-    // Borrow the current active frame
-    pub fn aframe(&mut self) -> &Frame {
-	&self.aframe
-    }
-
-    // Borrow the minibuffer
-    pub fn mini(&mut self) -> &MiniBuf {
-	&self.mbuf
-    }
-
     // Try to display the contents of the minibuffer
     pub fn popup_mini(&mut self) -> Result<bool> {
 	self.mbuf.print(&self.term)?;
@@ -89,39 +78,54 @@ impl Window {
     }
 
     // Execute the commands that were passed by the user
-    pub fn execute(&mut self, act: Action) -> Result<bool> {	
+    pub fn execute(&mut self, act: Action) -> Result<bool> {
+	let (tr,tc): (u16,u16) = self.term.size();
+	let (r,c): (usize, usize) = (tr.into(), tc.into());
+	let l: usize = self.aframe.text().len();
+	
 	match act {
-	    Quit => {		
-		self.term.write_line("")?; // Move to a newline before exiting
+	    Quit => {		// Move to a newline before exiting
+		self.term.write_line("")?; 
 		Ok(false)
 	    },
 	    DoNo      => Ok(true),         // Do Nothing
 	    Save      => self.aframe.save(&mut self.mbuf), // Save the current frame
-	    MoveUp    => {
-		let (tr,tc): (u16,u16) = self.term.size();
-		let (r,c): (usize, usize) = (tr.into(), tc.into());
+	    MoveUp    => {		
 		let old_i: usize = self.aframe.cur();
 		// if there is room to move up, sub term's columns from old frame cur
 		if old_i > c {
 		    let new_cur = old_i - c;
 		    self.aframe.set_cur(new_cur);
-		} else {
+		}
+		// No room to move up, so go to the beginning of the buffer
+		else {
 		    self.aframe.set_cur(0);
 		}
 		Ok(true)
 	    },
 	    MoveDown  => {
-		let l = self.aframe.text().len();
-		let (tr,tc): (u16,u16) = self.term.size();
-		let (r,c): (usize, usize) = (tr.into(), tc.into());
 		let old_i: usize = self.aframe.cur();
 		// If there is room to move down, add term's columns from old frame cur
 		let new_cur = clamp(old_i + c, 0, l);
 		self.aframe.set_cur(new_cur);
 		Ok(true)
 	    },
-	    MoveLeft  => self.aframe.move_bck(&mut self.mbuf),
-	    MoveRight => self.aframe.move_fwd(&mut self.mbuf),
+	    MoveLeft  => self.aframe.move_bck(),
+	    MoveRight => self.aframe.move_fwd(),
+	    EOL => {
+		// Do some math to move to the end of the current line
+		let old_i: usize = self.aframe.cur();
+		let rem = old_i % c;
+		let add = c - rem;
+		self.aframe.set_cur(clamp(old_i + add, 0, l));
+		Ok(true)
+	    },
+	    BOL => {
+		let old_i: usize = self.aframe.cur();
+		let sub = c;
+		self.aframe.set_cur(old_i - clamp(sub, 0, old_i));
+		Ok(true)
+	    },
 	    PrintMini => self.popup_mini(),
 	    LoadFromFilePath  => self.aframe.load_from_path(&mut self.mbuf),
 	    SetActiveFilePath => self.get_path_from_user(),
@@ -137,7 +141,7 @@ impl Window {
 
 // Convert the frame's buffer index to the term cursor's x/y coordinates
 fn fcur_to_tcur(i: usize, term: &Term) -> (usize,usize) {
-    let (tr,tc) = term.size(); // rows and columns
+    let (_tr,tc) = term.size(); // rows and columns
     let x = i % (tc) as usize; // what column are we in?
     let y = i / (tc) as usize; // what row are we in?
     (x,y)

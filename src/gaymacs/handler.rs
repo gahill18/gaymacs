@@ -21,6 +21,8 @@ pub fn init_handler() -> Handler {
     ks.insert(String::from("MoveDown")         ,MoveDown);
     ks.insert(String::from("MoveLeft")         ,MoveLeft);
     ks.insert(String::from("MoveRight")        ,MoveRight);
+    ks.insert(String::from("EOL")              ,EOL);
+    ks.insert(String::from("BOL")              ,BOL);
     ks.insert(String::from("SetActiveFilePath"),SetActiveFilePath);
     ks.insert(String::from("LoadFromFilePath") ,LoadFromFilePath);
     ks.insert(String::from("Save")             ,Save);
@@ -36,7 +38,7 @@ impl Handler {
     // Logic for user input in stdin
     pub fn handle_keypress(&self, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) ->  Result<Action> {
 	let raw_k = term.read_key()?;
-	let k = parse_key(raw_k.clone(), frame, mbuf, term);
+	let k = parse_key(raw_k.clone(), mbuf, term);
 
 	// Check if it's a known key
 	match self.keys.contains_key(&k) {
@@ -45,14 +47,13 @@ impl Handler {
 	}
     }
 
-    // Handle keys that we know are not in our handler look up table
+    // Handle keys that we know are not associated with actions
     fn unknown_keys(&self, raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) -> Result<Action> {
-	let success = match raw_k {
-	    Key::Char('\u{7f}') => frame.delete()?,
-	    Key::Backspace => frame.backspace()?,	  
-	    Key::Char(c) =>   frame.write_char(c)?, // Write the character to the buffer	    
-	    Key::Enter =>     frame.write_char('\n')?,	    // Newline	    
-	    // Key::Delete => frame.delete()?,            
+	let _success = match raw_k {
+	    Key::Char('\u{4}') => frame.delete()?,         // Delete in place
+	    Key::Backspace     => frame.backspace()?,	   // Delete backwards
+	    Key::Enter         => frame.newline()?,        // Newline
+	    Key::Char(c)       => frame.write_char(c)?,    // Write char to buffer
 	    bad_k => {// Show the error text in the minibuffer and do nothing
 		let err_text = format!("Not valid key press: {:?}", bad_k); 
 		mbuf.show_err(err_text, term)?;
@@ -66,7 +67,7 @@ impl Handler {
 
 // Go from a console::Key to String
 // See https://docs.rs/console/0.15.0/console/enum.Key.html
-pub fn parse_key(raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) -> String {
+pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
     match raw_k {
 	Key::Char('\u{11}') => { // C-q
 	    String::from("Quit")
@@ -77,12 +78,18 @@ pub fn parse_key(raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term)
 	Key::Char('\u{e}') => { // C-n
 	    String::from("MoveDown")
 	}
-	Key::Char('\u{2}') => { // C-b
+	Key::Char('\u{2}') => { // C-b	    
 	    String::from("MoveLeft")
 	}
 	Key::Char('\u{6}') => { // C-f
 	    String::from("MoveRight")
-	}	
+	}
+	Key::End => {  // C-e
+	    String::from("EOL")
+	}
+	Key::Home => { // C-a
+	    String::from("BOL")
+	}
 	Key::Char('\u{c}') => { // C-l
 	    String::from("SetActiveFilePath")
 	}
@@ -94,10 +101,10 @@ pub fn parse_key(raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term)
 	},
 	Key::Char('\0') => { // ` (i make this char with Shift-~)
 	    String::from("PrintMini")
-	}	
+	}
 	k => { // Anything else
 	    let stxt = format!("{:?}", k);
-	    let mbuf_res = mbuf.show_success(stxt.clone(), term);
+	    let _mbuf_res = mbuf.show_success(stxt.clone(), term);
 	    stxt
 	},
     }

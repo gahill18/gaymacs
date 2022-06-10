@@ -35,6 +35,13 @@ pub fn init_frame(uid: u16, n: String, b: String,
 
 // Where you actually edit the text
 impl Frame {
+
+    // Print to the terminal
+    pub fn print(&self) -> Result<bool> {
+	let _ = &self.term.write_line(&self.text());
+	Ok(true)
+    }
+    
     // Getter for name
     pub fn name(&self) -> String {
 	self.name.clone()
@@ -50,11 +57,7 @@ impl Frame {
 	self.cur.clone()
     }
 
-    // Getter for path
-    pub fn path(&self) -> Option<String> {
-	self.path.clone()
-    }
-
+    // Update the cursor
     pub fn set_cur(&mut self, i: usize) -> () {
 	self.cur = i;
     }
@@ -99,19 +102,6 @@ impl Frame {
 	Ok(true)
     }
 
-    // Print to the terminal
-    pub fn print(&self) -> Result<bool> {
-	let _ = &self.term.write_line(&self.text());
-	Ok(true)
-    }
-
-    // Clear the current buffer
-    pub fn clear_buf(&mut self) -> Result<bool> {
-	self.buf = String::from("");
-	let _ = &self.term.clear_screen()?;
-	Ok(true)
-    }
-
     // Delete the character behind the cursor
     pub fn backspace(&mut self) -> Result<bool> {
 	if self.cur > 0 {
@@ -138,9 +128,15 @@ impl Frame {
     }
 
     // Add the next character to the buffer
-    pub fn write_char(&mut self, c: char) -> Result<bool> {	
+    pub fn write_char(&mut self, c: char) -> Result<bool> {
+	if c == '\n' { println!("DEBUG: test"); }
 	self.buf.insert(self.cur, c);
 	self.cur = self.cur + 1;
+	Ok(true)
+    }
+
+    // Add a line break to the buffer
+    pub fn newline(&mut self) -> Result<bool> {
 	Ok(true)
     }
 
@@ -159,14 +155,13 @@ impl Frame {
 		match File::create(&p) {
 		    // If we opened the file, try to write the buffer contents
 		    Ok(mut file) => match file.write_all(self.buf.as_bytes()) {
-			Ok(s) => {
-			    //Show file write success
+			//Show file write success
+			Ok(_) => {			    
 			    let s_text = format!("saved in {:?}",p);
 			    mbuf.show_success(s_text, &self.term)
 			},
-			Err(s) =>
-			    //Show file write error
-			    mbuf.show_err(s.to_string(), &self.term),
+			//Show file write error
+			Err(s) => mbuf.show_err(s.to_string(), &self.term),
 		    },
 		    // If we failed to open the file, show the error in mini
 		    Err(s) => mbuf.show_err(s.to_string(), &self.term),
@@ -182,16 +177,14 @@ impl Frame {
 	self.save(mbuf)
     }
 
-    // MOVEMENT FUNCTIONS
-
-    pub fn move_fwd(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+    pub fn move_fwd(&mut self) -> Result<bool> {
 	let l = self.buf.len();
 	let new_i = clamp(self.cur() + 1, 0, l);
 	self.set_cur(new_i);
 	Ok(true)
     }
 
-    pub fn move_bck(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+    pub fn move_bck(&mut self) -> Result<bool> {
 	let l = self.buf.len();
 	let new_i = clamp(self.cur(), 1, l-1) - 1;
 	self.set_cur(new_i);
