@@ -18,7 +18,7 @@
 *** [x] When they save/save-as contents of buffer writes to file
 *** [x] Change filepath with keypress
 *** [x] Frame loads file with keypress
-*** [ ] IN PROGRESS User can move the cursor around the tui
+*** [x] User can move the cursor around the tui
 
 ** Minibuffer
 

@@ -1,4 +1,5 @@
 use std::io::Result;
+use num::clamp;
 use console::Term;
 
 use crate::*;
@@ -30,8 +31,11 @@ pub fn init_win(def_frame: Frame, t: &Term, h: &Handler) -> Window {
 impl Window {
     // Try to redraw to the terminal
     pub fn refresh(&self) -> Result<bool> {
+	// Redraw
 	self.term.clear_screen()?;
 	self.aframe.print()?;
+
+	// Update cursor
 	let (new_x,new_y) = fcur_to_tcur(self.aframe.cur(), &self.term);
 	self.term.move_cursor_to(new_x, new_y)?;
 	
@@ -85,27 +89,45 @@ impl Window {
     }
 
     // Execute the commands that were passed by the user
-    pub fn execute(&mut self, act: Action) -> Result<bool> {
-	let _ = &self.refresh();                          // Update the screen
+    pub fn execute(&mut self, act: Action) -> Result<bool> {	
 	match act {
-	    // Move to a new line then exit
 	    Quit => {		
-		self.term.write_line("")?;
+		self.term.write_line("")?; // Move to a newline before exiting
 		Ok(false)
 	    },
-	    // "Self Documenting" oneliners (check the source files for better doc)
-	    DoNo      => Ok(true),
-	    Save      => self.aframe.save(&mut self.mbuf),
-	    MoveUp    => self.aframe.move_up(&mut self.mbuf),
-	    MoveDown  => self.aframe.move_down(&mut self.mbuf),
-	    MoveLeft  => self.aframe.move_left(&mut self.mbuf),
-	    MoveRight => self.aframe.move_right(&mut self.mbuf),
+	    DoNo      => Ok(true),         // Do Nothing
+	    Save      => self.aframe.save(&mut self.mbuf), // Save the current frame
+	    MoveUp    => { // TODO: FIX
+		let (tr,tc): (u16,u16) = self.term.size();
+		let (r,c): (usize, usize) = (tr.into(), tc.into());
+		let old_i: usize = self.aframe.cur();
+		// if there is room to move up, sub term's columns from old frame cur
+		if old_i > c {
+		    let new_cur = old_i - c;
+		    self.aframe.set_cur(new_cur);
+		} else {
+		    self.aframe.set_cur(0);
+		}
+		Ok(true)
+	    },
+	    MoveDown  => { // TODO: FIX
+		let l = self.aframe.text().len();
+		let (tr,tc): (u16,u16) = self.term.size();
+		let (r,c): (usize, usize) = (tr.into(), tc.into());
+		let old_i: usize = self.aframe.cur();
+		// If there is room to move down, add term's columns from old frame cur
+		let new_cur = clamp(old_i + c, 0, l);
+		self.aframe.set_cur(new_cur);
+		Ok(true)
+	    },
+	    MoveLeft  => self.aframe.move_bck(&mut self.mbuf),
+	    MoveRight => self.aframe.move_fwd(&mut self.mbuf),
 	    PrintMini => self.popup_mini(),
 	    LoadFromFilePath  => self.aframe.load_from_path(&mut self.mbuf),
 	    SetActiveFilePath => self.get_path_from_user(),
 	    // Don't crash, just tell what went wrong		
 	    c => {  
-		let error_text = format!("failed to execute {:?}", c);
+		let error_text = format!("failed to execute command {:?}", c);
 		self.mbuf.show_err(error_text, &self.term)?;		
 		Ok(true)
 	    }
@@ -113,10 +135,10 @@ impl Window {
     }
 }
 
-// Convert the frame's buffer index to the term's x/y coordinates
+// Convert the frame's buffer index to the term cursor's x/y coordinates
 fn fcur_to_tcur(i: usize, term: &Term) -> (usize,usize) {
-    let (tx,ty) = term.size();
-    let x = i % (ty*2) as usize;
-    let y = i / (tx*2) as usize;
+    let (tr,tc) = term.size(); // rows and columns
+    let x = i % (tc) as usize; // what column are we in?
+    let y = i / (tc) as usize; // what row are we in?
     (x,y)
 }

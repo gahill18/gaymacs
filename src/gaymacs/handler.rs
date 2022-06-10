@@ -47,15 +47,13 @@ impl Handler {
 
     // Handle keys that we know are not in our handler look up table
     fn unknown_keys(&self, raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) -> Result<Action> {
-	let success = match raw_k { 
-	    // Write the character to the buffer
-	    Key::Char(c) =>   frame.write_char(c)?,
-	    // Newline
-	    Key::Enter =>     frame.write_char('\n')?,
-	    // Delete last char
-	    Key::Backspace => frame.backspace()?,	    
-	    // Show the error text in the minibuffer and do nothing
-	    bad_k => {
+	let success = match raw_k {
+	    Key::Char('\u{7f}') => frame.delete()?,
+	    Key::Backspace => frame.backspace()?,	  
+	    Key::Char(c) =>   frame.write_char(c)?, // Write the character to the buffer	    
+	    Key::Enter =>     frame.write_char('\n')?,	    // Newline	    
+	    // Key::Delete => frame.delete()?,            
+	    bad_k => {// Show the error text in the minibuffer and do nothing
 		let err_text = format!("Not valid key press: {:?}", bad_k); 
 		mbuf.show_err(err_text, term)?;
 		true

@@ -27,7 +27,7 @@ pub fn init_frame(uid: u16, n: String, b: String,
 	id: uid,
 	name: n,
 	buf: b,
-	cur: 1,
+	cur: 0,
 	path: p,
 	term: t.clone(),
     }
@@ -53,6 +53,10 @@ impl Frame {
     // Getter for path
     pub fn path(&self) -> Option<String> {
 	self.path.clone()
+    }
+
+    pub fn set_cur(&mut self, i: usize) -> () {
+	self.cur = i;
     }
 
     // Set the path variable so saving works correctly
@@ -108,7 +112,7 @@ impl Frame {
 	Ok(true)
     }
 
-    // Delete the most recent character in the buffer
+    // Delete the character behind the cursor
     pub fn backspace(&mut self) -> Result<bool> {
 	if self.cur > 0 {
 	    let i = self.cur;
@@ -118,6 +122,16 @@ impl Frame {
 	    if i > 0 {
 		self.cur = i - 1;
 	    }
+	}
+		
+	Ok(true)
+    }
+
+    // Delete the character under the cursor
+    pub fn delete(&mut self) -> Result<bool> {
+	if self.buf.len() > 0 {
+	    let i = self.cur;
+	    let _c = self.buf.remove(i);
 	}
 		
 	Ok(true)
@@ -170,41 +184,17 @@ impl Frame {
 
     // MOVEMENT FUNCTIONS
 
-    pub fn move_left(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	if self.buf.len() > 0 {
-	    let max = self.buf.len() - 1;
-	    let min = 1;
-	    self.cur = clamp(self.cur, min, max) - 1;
-	}
+    pub fn move_fwd(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	let l = self.buf.len();
+	let new_i = clamp(self.cur() + 1, 0, l);
+	self.set_cur(new_i);
 	Ok(true)
     }
 
-    pub fn move_right(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	if self.buf.len() > 0 {
-	    let max = self.buf.len() - 1;
-	    let min = 0;
-	    self.cur = clamp(self.cur, min, max) + 1;
-	}
-	Ok(true)
-    }
-
-    pub fn move_up(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	if self.buf.len() > 0 {
-	    let term_line_length = 1;
-	    let max = self.buf.len() - 1;
-	    let min = term_line_length;
-	    self.cur = clamp(self.cur, min, max) - term_line_length; 
-	}
-	Ok(true)
-    }
-
-    pub fn move_down(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	if self.buf.len() > 0 {
-	    let term_line_length = 1;
-	    let max = self.buf.len() - term_line_length - 1;
-	    let min = 0;
-	    self.cur = clamp(self.cur, min, max) + term_line_length;
-	}
+    pub fn move_bck(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+	let l = self.buf.len();
+	let new_i = clamp(self.cur(), 1, l-1) - 1;
+	self.set_cur(new_i);
 	Ok(true)
     }
 }

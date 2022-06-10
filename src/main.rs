@@ -43,9 +43,10 @@ fn main() -> Result<()> {
     let mut act = DoNo;       // Default action is to do nothing
 
     // If no interrupts
-    while clean {                               
+    while clean {
+	let _ = awin.refresh();                // Update the screen
 	act =  awin.handle_keypress()?;         // Get next action from user input
-	clean = awin.execute(act)?;	        // Handle actions
+	clean = awin.execute(act)?;	        // Handle actions	
     }
 
     // TODO: Separate into navigation and edit modules
