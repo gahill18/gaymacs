@@ -30,7 +30,6 @@
 *** [ ] Mini executes native functions
 *** [ ] Mini executes user functions
 
-
 ** Window Management
    
 *** [ ] Windows split into multiple frames
@@ -40,16 +39,23 @@
 ** General Project Management
 
 *** [ ] Clean up module structure
-*** [ ] Improve documentation
-*** [ ] Satisfy clippy    
+*** [ ] ONGOING: Improve documentation
+*** [ ] Satisfy clippy
 
 
 * How To Get Started   
 
 ** TODO Instructions on getting started
 
+   *Dependencies*
+
+   1. [[https://docs.rs/console/0.15.0/console/index.html][console]]
+
+   *Installation*
+
    1. Clone this git repo
-   2. From root, run "cargo run"
+   2. From the project root, run "cargo run" in your terminal of choice
+   3. Start typing! See the keybinds section for movement and file controls.
 
 ** TODO Keybinds
 

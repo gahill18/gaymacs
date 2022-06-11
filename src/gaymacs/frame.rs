@@ -119,7 +119,8 @@ impl Frame {
 
     // Delete the character under the cursor
     pub fn delete(&mut self) -> Result<bool> {
-	if self.buf.len() > 0 {
+	let l = self.text().len();
+	if self.text().len() > 0 && self.cur < l {
 	    let i = self.cur;
 	    let _c = self.buf.remove(i);
 	}
@@ -136,6 +137,7 @@ impl Frame {
 
     // Add a line break to the buffer
     pub fn newline(&mut self) -> Result<bool> {
+	// TODO: Fix
 	self.write_char('\n')
     }
 
@@ -143,16 +145,14 @@ impl Frame {
     pub fn save(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
 	match &self.path {
 	    // If no file has been initialized, do so now
-	    None => {	    
-		self.save_as(mbuf)
-	    },
+	    None => self.save_as(mbuf),
 	    // If a file exists, overwrite it's contents with current buffer's
 	    Some(path) => {
 		// Format the path text so we can read it
 		let p = Path::new(path);
 		// Attempt to open file 
 		match File::create(&p) {
-		    // If we opened the file, try to write the buffer contents
+		    // On file open success, try to write the buffer contents
 		    Ok(mut file) => match file.write_all(self.buf.as_bytes()) {
 			//Show file write success
 			Ok(_) => {			    
@@ -162,7 +162,7 @@ impl Frame {
 			//Show file write error
 			Err(s) => mbuf.show_err(s.to_string(), &self.term),
 		    },
-		    // If we failed to open the file, show the error in mini
+		    // Show file open error
 		    Err(s) => mbuf.show_err(s.to_string(), &self.term),
 		}
 	    },
@@ -176,6 +176,7 @@ impl Frame {
 	self.save(mbuf)
     }
 
+    // Try to move the buffer index one step closer to the end of the buffer
     pub fn move_fwd(&mut self) -> Result<bool> {
 	let l = self.buf.len();
 	let new_i = clamp(self.cur() + 1, 0, l);
@@ -183,9 +184,10 @@ impl Frame {
 	Ok(true)
     }
 
+    // Try to move the buffer index one step closer to the start of the buffer
     pub fn move_bck(&mut self) -> Result<bool> {
 	let l = self.buf.len();
-	let new_i = clamp(self.cur(), 1, l-1) - 1;
+	let new_i = clamp(self.cur(), 1, l) - 1;
 	self.set_cur(new_i);
 	Ok(true)
     }

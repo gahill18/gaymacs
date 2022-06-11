@@ -121,15 +121,15 @@ impl Window {
 		// Do some math to move to the end of the current line
 		let old_i: usize = self.aframe.cur();
 		let rem = old_i % c;
-		let add = c - rem;
+		let add = clamp(c - rem, 1, l - old_i) - 1;
 		self.aframe.set_cur(clamp(old_i + add, 0, l));
 		Ok(true)
 	    },
 	    BOL => {
 		// Do some math to move to the beginning of the current line
 		let old_i: usize = self.aframe.cur();
-		let sub = c;
-		self.aframe.set_cur(old_i - clamp(sub, 0, old_i));
+		let rem = old_i % c;
+		self.aframe.set_cur(old_i - rem);
 		Ok(true)
 	    },
 	    PrintMini => self.popup_mini(),
