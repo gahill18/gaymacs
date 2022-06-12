@@ -29,7 +29,7 @@ pub fn init_frame(uid: u16, n: String, b: String,
 	buf: b,
 	cur: 0,
 	path: p,
-	term: t.clone(),
+	term: t,
     }
 }
 
@@ -54,11 +54,11 @@ impl Frame {
 
     // Getter for cursor
     pub fn cur(&self) -> usize {
-	self.cur.clone()
+	self.cur
     }
 
     // Update the cursor
-    pub fn set_cur(&mut self, i: usize) -> () {
+    pub fn set_cur(&mut self, i: usize) {
 	self.cur = i;
     }
 
@@ -66,7 +66,7 @@ impl Frame {
     pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<bool> {
 	self.path = Some(p);
 	let s_text = format!("path set as {:?}", self.path);
-	mbuf.show_success(s_text, &self.term)?;
+	mbuf.show_success(s_text)?;
 	Ok(true)
     }
 
@@ -83,20 +83,20 @@ impl Frame {
 			    // We read it!
 			    Ok(_)  => {                 
 				self.buf = fcontents.clone();
-				mbuf.show_success(fcontents, &self.term)?
+				mbuf.show_success(fcontents)?
 			    },
 			    // We didn't read it :(
-			    Err(s) => mbuf.show_err(s.to_string(), &self.term)?,
+			    Err(s) => mbuf.show_err(s.to_string())?,
 			};
 		    },		    
 		    Err(s)   => {                       // Didn't open it :(
-			mbuf.show_err(s.to_string(), &self.term)?;
+			mbuf.show_err(s.to_string())?;
 		    },
 		}
 	    },	    
 	    None   => {                                 // No path :(
 		let err_text = format!("no filepath for buffer {:?}", self.name);
-		mbuf.show_err(err_text, &self.term)?;
+		mbuf.show_err(err_text)?;
 	    },
 	}
 	Ok(true)
@@ -120,7 +120,7 @@ impl Frame {
     // Delete the character under the cursor
     pub fn delete(&mut self) -> Result<bool> {
 	let l = self.text().len();
-	if self.text().len() > 0 && self.cur < l {
+	if l > 0 && self.cur < l {
 	    let i = self.cur;
 	    let _c = self.buf.remove(i);
 	}
@@ -131,7 +131,7 @@ impl Frame {
     // Add the next character to the buffer
     pub fn write_char(&mut self, c: char) -> Result<bool> {	
 	self.buf.insert(self.cur, c);
-	self.cur = self.cur + 1;
+	self.cur += 1;
 	Ok(true)
     }
 
@@ -157,13 +157,13 @@ impl Frame {
 			//Show file write success
 			Ok(_) => {			    
 			    let s_text = format!("saved in {:?}",p);
-			    mbuf.show_success(s_text, &self.term)
+			    mbuf.show_success(s_text)
 			},
 			//Show file write error
-			Err(s) => mbuf.show_err(s.to_string(), &self.term),
+			Err(s) => mbuf.show_err(s.to_string()),
 		    },
 		    // Show file open error
-		    Err(s) => mbuf.show_err(s.to_string(), &self.term),
+		    Err(s) => mbuf.show_err(s.to_string()),
 		}
 	    },
 	}

@@ -19,7 +19,7 @@ fn startup(term: Term, handler: Handler) -> Result<Window> {
 
     // Scratch buffer and starting window
     let aframe: Frame = init_frame(0, fname, fibuf, None, term.clone());
-    let mut init_win: Window = init_win(aframe.clone(), term, handler);
+    let mut init_win: Window = init_win(aframe, term, handler);
 
     // Return successfully
     Ok(init_win)     
@@ -30,12 +30,12 @@ fn startup(term: Term, handler: Handler) -> Result<Window> {
 // Core functionality
 fn main() -> Result<()> {
     // Terminal abstraction for easier management of terminal interaction
-    let term = Term::stdout();
+    let term: Term = Term::stdout();
     term.clear_screen()?;
     term.show_cursor()?;
 
     // Event handler, active window, interrupt flag
-    let handler: Handler = init_handler();
+    let handler: Handler = init_handler(term.clone());
     let mut awin: Window = startup(term, handler)?;
     let mut clean = true;
 
@@ -46,7 +46,6 @@ fn main() -> Result<()> {
 	clean = awin.execute(act)?;	        // Handle actions	
     }
 
-    // Refresh and exit successfully
-    let _ = awin.refresh()?;                
+    // Exit successfully
     Ok(()) 
 }

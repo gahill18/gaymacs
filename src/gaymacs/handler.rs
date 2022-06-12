@@ -10,10 +10,11 @@ use crate::{Action::*,};
 #[derive(Debug,Clone)]
 pub struct Handler {
     keys: HashMap <String, Action>,
+    term: Term,
 }
 
 // Generates a handler
-pub fn init_handler() -> Handler {
+pub fn init_handler(t: Term) -> Handler {
     let mut ks: HashMap<String, Action> = HashMap::new();
     
     ks.insert(String::from("Quit")             ,Quit);
@@ -21,8 +22,8 @@ pub fn init_handler() -> Handler {
     ks.insert(String::from("MoveDown")         ,MoveDown);
     ks.insert(String::from("MoveLeft")         ,MoveLeft);
     ks.insert(String::from("MoveRight")        ,MoveRight);
-    ks.insert(String::from("EOL")              ,EOL);
-    ks.insert(String::from("BOL")              ,BOL);
+    ks.insert(String::from("Eol")              ,Eol);
+    ks.insert(String::from("Bol")              ,Bol);
     ks.insert(String::from("SetActiveFilePath"),SetActiveFilePath);
     ks.insert(String::from("LoadFromFilePath") ,LoadFromFilePath);
     ks.insert(String::from("Save")             ,Save);
@@ -31,24 +32,25 @@ pub fn init_handler() -> Handler {
     // Final returned value
     Handler {
 	keys: ks,
+	term: t,
     }
 }
 
 impl Handler {
     // Logic for user input in stdin
-    pub fn handle_keypress(&self, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) ->  Result<Action> {
-	let raw_k = term.read_key()?;
-	let k = parse_key(raw_k.clone(), mbuf, term);
+    pub fn handle_keypress(&self, frame: &mut Frame, mbuf: &mut MiniBuf) ->  Result<Action> {
+	let raw_k = self.term.read_key()?;
+	let k = parse_key(raw_k.clone(), mbuf);
 
 	// Check if it's a known key
 	match self.keys.contains_key(&k) {
 	    true => Ok(self.keys[&k]),
-	    false => self.unknown_keys(raw_k, frame, mbuf, term),
+	    false => self.unknown_keys(raw_k, frame, mbuf),
 	}
     }
 
     // Handle keys that we know are not associated with actions
-    fn unknown_keys(&self, raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf, term: &Term) -> Result<Action> {
+    fn unknown_keys(&self, raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf) -> Result<Action> {
 	let _success = match raw_k {
 	    Key::Char('\u{4}') => frame.delete()?,         // Delete in place
 	    Key::Backspace     => frame.backspace()?,	   // Delete backwards
@@ -60,13 +62,13 @@ impl Handler {
 		}
 		else {
 		    let err_text = format!("Not valid character: {:?}", c); 
-		    mbuf.show_err(err_text, term)?;
+		    mbuf.show_err(err_text)?;
 		    true
 		}
 	    },
 	    bad_k => {// Show the error text in the minibuffer and do nothing
 		let err_text = format!("Not valid key press: {:?}", bad_k); 
-		mbuf.show_err(err_text, term)?;
+		mbuf.show_err(err_text)?;
 		true
 	    },
 	};
@@ -77,7 +79,7 @@ impl Handler {
 
 // Go from a console::Key to String
 // See https://docs.rs/console/0.15.0/console/enum.Key.html
-pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
+pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf) -> String {
     match raw_k {
 	Key::Char('\u{11}') => { // C-q
 	    String::from("Quit")
@@ -95,10 +97,10 @@ pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
 	    String::from("MoveRight")
 	}
 	Key::End => {  // C-e
-	    String::from("EOL")
+	    String::from("Eol")
 	}
 	Key::Home => { // C-a
-	    String::from("BOL")
+	    String::from("Bol")
 	}
 	Key::Char('\u{c}') => { // C-l
 	    String::from("SetActiveFilePath")
@@ -109,12 +111,12 @@ pub fn parse_key(raw_k: Key, mbuf: &mut MiniBuf, term: &Term) -> String {
 	Key::Char('\u{13}') => { // C-s
 	    String::from("Save")
 	},
-	Key::Char('\u{f}') => { // C-m	    
+	Key::Char('\u{f}') => { // C-o
 	    String::from("PrintMini")
 	}
 	k => { // Anything else
 	    let stxt = format!("{:?}", k);
-	    let _mbuf_res = mbuf.show_success(stxt.clone(), term);
+	    let _mbuf_res = mbuf.show_success(stxt.clone());
 	    stxt
 	},
     }

@@ -24,11 +24,11 @@ pub fn init_win(def_frame: Frame, t: Term, h: Handler) -> Window {
     Window {
 	frames:  fs,
 	aframe:  def_frame,
-	mbuf:    MiniBuf::init_minibuf(),
+	mbuf:    MiniBuf::init_minibuf(t.clone()),
 	mbup:    false,
 	term:    t.clone(),
 	handler: h,
-	mdln:    Modeline::init_modeline(t.clone()),
+	mdln:    Modeline::init_modeline(t),
     }
 }
 
@@ -39,7 +39,7 @@ impl Window {
 	self.term.clear_screen()?;
 	self.aframe.print()?;
 	if self.mbup {	    
-	    self.mbuf.print(&self.term);
+	    self.mbuf.print()?;
 	}
 	self.mdln.print()?;
 
@@ -61,7 +61,7 @@ impl Window {
     pub fn ls_frames(&mut self) -> Result<bool> {
 	for frame in &self.frames {       // For every frame in the list
 	    let out = frame.name();       // Get the name of the frame
-	    self.mbuf.show_success(out, &self.term)?;  // Print in the minibuffer
+	    self.mbuf.show_success(out)?;  // Print in the minibuffer
 	};
 	Ok(true)
     }
@@ -83,13 +83,13 @@ impl Window {
 
     // Try to handle the next keypress from the user
     pub fn handle_keypress(&mut self) -> Result<Action> {
-	self.handler.handle_keypress(&mut self.aframe, &mut self.mbuf, &self.term)
+	self.handler.handle_keypress(&mut self.aframe, &mut self.mbuf)
     }
 
     // Execute the commands that were passed by the user
     pub fn execute(&mut self, act: Action) -> Result<bool> {
 	let (tr,tc): (u16,u16) = self.term.size();
-	let (r,c): (usize, usize) = (tr.into(), tc.into());
+	let (_r,c): (usize, usize) = (tr.into(), tc.into());
 	let l: usize = self.aframe.text().len();
 	
 	match act {
@@ -116,14 +116,14 @@ impl Window {
 	    },
 	    MoveLeft  => self.aframe.move_bck(),
 	    MoveRight => self.aframe.move_fwd(),
-	    EOL => {
+	    Eol => {
 		// Do some math to move to the end of the current line
 		let old_i: usize = self.aframe.cur();
 		let add:   usize = c - (old_i % c);
 		self.aframe.set_cur(clamp(old_i + add - 1, 0, l));
 		Ok(true)
 	    },
-	    BOL => {
+	    Bol => {
 		// Do some math to move to the beginning of the current line
 		let old_i: usize = self.aframe.cur();
 		let rem = old_i % c;
@@ -136,9 +136,8 @@ impl Window {
 	    // Don't crash, just tell what went wrong		
 	    c => {  
 		let error_text = format!("failed to execute command {:?}", c);
-		self.mbuf.show_err(error_text, &self.term)?;
-		self.popup_mini();
-		Ok(true)
+		self.mbuf.show_err(error_text)?;
+		self.popup_mini()
 	    }
 	}
     }

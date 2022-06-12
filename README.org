@@ -47,6 +47,7 @@
 
 ** General Project Management
 
+*** [ ] Add lifetimes to Window and subs
 *** [ ] Clean up module structure
 *** [ ] Standardize result return types where possible (Remove Ok(true)'s)
 *** [ ] ONGOING: Improve documentation
@@ -77,6 +78,8 @@
     | Right | C-f |
     | Up    | C-p |
     | Down  | C-n |
+    | Beginning of Line | C-a |
+    | End of Line | C-e |
 
     *File Management*
 
@@ -85,4 +88,5 @@
 
     *UI*
 
+    | Quit GAYMACS | C-q |
     | Toggle minibuffer display | C-o |

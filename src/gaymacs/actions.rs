@@ -4,8 +4,8 @@ pub enum Action {
     MoveDown,
     MoveLeft,
     MoveRight,
-    EOL,//End of Line
-    BOL,//Begining of Line
+    Eol,//End of Line
+    Bol,//Begining of Line
     SetActiveFilePath,
     LoadFromFilePath,
     PrintMini,
