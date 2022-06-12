@@ -51,6 +51,7 @@
 *** [ ] Standardize result return types where possible (Remove Ok(true)'s)
 *** [ ] ONGOING: Improve documentation
 *** [ ] Satisfy clippy
+*** [ ] Add Pictures to Git Repo
 
 
 * How To Get Started   

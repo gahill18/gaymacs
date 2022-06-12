@@ -46,6 +46,7 @@ fn main() -> Result<()> {
 	clean = awin.execute(act)?;	        // Handle actions	
     }
 
-    // Exit successfully
+    // Refresh and exit successfully
+    let _ = awin.refresh()?;                
     Ok(()) 
 }

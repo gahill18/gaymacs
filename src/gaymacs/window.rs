@@ -93,25 +93,23 @@ impl Window {
 	let l: usize = self.aframe.text().len();
 	
 	match act {
-	    Quit      => Ok(false),                        // Exit
+	    Quit      => Ok(false),                        // Exit GAYMACS
 	    DoNo      => Ok(true),                         // Do Nothing
-	    Save      => self.aframe.save(&mut self.mbuf), // Save the current frame
+	    Save      => self.aframe.save(&mut self.mbuf), // Save current frame
 	    MoveUp    => {		
 		let old_i: usize = self.aframe.cur();
-		// if there is room to move up, sub term's columns from old frame cur
+		// if room to move up, sub term's columns from old frame cur
 		if old_i > c {
 		    let new_cur = old_i - c;
 		    self.aframe.set_cur(new_cur);
 		}
 		// No room to move up, so go to the beginning of the buffer
-		else {
-		    self.aframe.set_cur(0);
-		}
+		else { self.aframe.set_cur(0); }		
 		Ok(true)
 	    },
 	    MoveDown  => {
 		let old_i: usize = self.aframe.cur();
-		// If there is room to move down, add term's columns from old frame cur
+		// If room to move down, add term's cols to old frame cur
 		let new_cur = clamp(old_i + c, 0, l);
 		self.aframe.set_cur(new_cur);
 		Ok(true)
@@ -121,9 +119,8 @@ impl Window {
 	    EOL => {
 		// Do some math to move to the end of the current line
 		let old_i: usize = self.aframe.cur();
-		let rem:   usize = old_i % c;
-		let add:   usize = clamp(c - rem, 1, l - old_i);
-		self.aframe.set_cur(clamp(old_i + add, 0, l));
+		let add:   usize = c - (old_i % c);
+		self.aframe.set_cur(clamp(old_i + add - 1, 0, l));
 		Ok(true)
 	    },
 	    BOL => {
