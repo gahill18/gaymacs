@@ -11,17 +11,18 @@ use crate::gaymacs::actions::{Action, Action::*};
 use crate::gaymacs::handler::*;
 
 // Setup the starting conditions for the editor
-fn startup(term: &Term, handler: &Handler) -> Result<Window> {
-    let fname: String = String::from("*scratch*");  // Frame Name
-    let fibuf: String = String::from("Splash!");    // Frame's Initial Buffer text
+// Returns the initialized starting window
+fn startup(term: Term, handler: Handler) -> Result<Window> {
+    // Frame Name and Initial Buffer Text
+    let fname: String = String::from("*scratch*");  
+    let fibuf: String = String::from("");
 
-    // Starting frame with no file (scratch buf)
-    let aframe: Frame = init_frame(0, fname, fibuf, None, term);
-    // starting window
+    // Scratch buffer and starting window
+    let aframe: Frame = init_frame(0, fname, fibuf, None, term.clone());
     let mut init_win: Window = init_win(aframe.clone(), term, handler);
-    
-    aframe.print()?;           // Show the text of the first frame
-    Ok(init_win)     // Return the starting window and starting frame
+
+    // Return successfully
+    Ok(init_win)     
 }
 
 
@@ -33,22 +34,17 @@ fn main() -> Result<()> {
     term.clear_screen()?;
     term.show_cursor()?;
 
-    // Get the event handler (default or user provided)
+    // Event handler, active window, interrupt flag
     let handler: Handler = init_handler();
-
-    // Active window and active frame
-    let mut awin: Window = startup(&term, &handler)?;
-
-    let mut clean = true;     // We haven't interrupted yet
+    let mut awin: Window = startup(term, handler)?;
+    let mut clean = true;
 
     // If no interrupts
     while clean {
-	let _ = awin.refresh();                // Update the screen
-	let act =  awin.handle_keypress()?;         // Get next action from user input
+	let _ = awin.refresh()?;                // Update the screen
+	let act =  awin.handle_keypress()?;     // Get next action from user input
 	clean = awin.execute(act)?;	        // Handle actions	
     }
-
-    // TODO: Separate into navigation and edit modules
 
     // Exit successfully
     Ok(()) 

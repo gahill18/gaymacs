@@ -22,7 +22,7 @@ pub struct Frame {
 
 // Takes a unique id, frame name, and starting buffer text, and returns new frame
 pub fn init_frame(uid: u16, n: String, b: String,
-		  p: Option<String>, t: &Term) -> Frame {
+		  p: Option<String>, t: Term) -> Frame {
     Frame {
 	id: uid,
 	name: n,

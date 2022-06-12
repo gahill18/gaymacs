@@ -20,7 +20,9 @@
 *** [x] Frame loads file with keypress
 *** [ ] INDEV User can move the cursor around the tui
     TODO: Fix newline functionality with cursor placement
-*** [ ] Copy/Paste functionality
+*** [ ] INDEV Copy/Paste functionality
+    TODO: Implement killring stack
+    TODO: Add action for kill/yank
 
 ** Minibuffer
 
@@ -30,15 +32,23 @@
 *** [ ] Mini executes native functions
 *** [ ] Mini executes user functions
 
+** Modeline
+
+*** [x] Modeline appears on screen
+*** [ ] Modeline displays window variable values
+*** [ ] Modeline displays frame variable values
+
 ** Window Management
-   
-*** [ ] Windows split into multiple frames
-*** [ ] Frames are resizables
+
+*** [ ] Windows can have multiple accessible frames
+*** [ ] Windows can have multiple visible frames
+*** [ ] Visible frames are resizable
 *** [ ] Frames are floating AND/OR tiling
 
 ** General Project Management
 
 *** [ ] Clean up module structure
+*** [ ] Standardize result return types where possible (Remove Ok(true)'s)
 *** [ ] ONGOING: Improve documentation
 *** [ ] Satisfy clippy
 
@@ -50,6 +60,7 @@
    *Dependencies*
 
    1. [[https://docs.rs/console/0.15.0/console/index.html][console]]
+   2. [[https://crates.io/crates/num][num]]
 
    *Installation*
 

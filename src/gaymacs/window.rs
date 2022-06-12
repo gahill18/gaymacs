@@ -4,6 +4,7 @@ use console::Term;
 
 use crate::*;
 use crate::gaymacs::mini::MiniBuf;
+use crate::gaymacs::modeline::Modeline;
 
 // The entire window to be displayed in the terminal
 pub struct Window {
@@ -13,19 +14,21 @@ pub struct Window {
     mbup:   bool,       // Show minibuffer?
     term:   Term,       // Terminal to manage windows in
     handler: Handler,   // Handler for keypresses
+    mdln:   Modeline,   // Modeline for window information
 }
 
 // Create a new default window
-pub fn init_win(def_frame: Frame, t: &Term, h: &Handler) -> Window {
+pub fn init_win(def_frame: Frame, t: Term, h: Handler) -> Window {
     let fs: Vec<Frame> = vec![def_frame.clone()];
 
     Window {
 	frames:  fs,
 	aframe:  def_frame,
-	mbuf:    MiniBuf::from("outs"),
+	mbuf:    MiniBuf::init_minibuf(),
 	mbup:    false,
 	term:    t.clone(),
-	handler: h.clone(),
+	handler: h,
+	mdln:    Modeline::init_modeline(t.clone()),
     }
 }
 
@@ -35,9 +38,10 @@ impl Window {
 	// Redraw
 	self.term.clear_screen()?;
 	self.aframe.print()?;
-	if self.mbup {
+	if self.mbup {	    
 	    self.mbuf.print(&self.term);
 	}
+	self.mdln.print()?;
 
 	// Update cursor
 	let (new_x,new_y) = fcur_to_tcur(self.aframe.cur(), &self.term);
@@ -89,11 +93,8 @@ impl Window {
 	let l: usize = self.aframe.text().len();
 	
 	match act {
-	    Quit => {		// Move to a newline before exiting
-		self.term.write_line("")?; 
-		Ok(false)
-	    },
-	    DoNo      => Ok(true),         // Do Nothing
+	    Quit      => Ok(false),                        // Exit
+	    DoNo      => Ok(true),                         // Do Nothing
 	    Save      => self.aframe.save(&mut self.mbuf), // Save the current frame
 	    MoveUp    => {		
 		let old_i: usize = self.aframe.cur();
@@ -120,8 +121,8 @@ impl Window {
 	    EOL => {
 		// Do some math to move to the end of the current line
 		let old_i: usize = self.aframe.cur();
-		let rem = old_i % c;
-		let add = clamp(c - rem, 1, l - old_i) - 1;
+		let rem:   usize = old_i % c;
+		let add:   usize = clamp(c - rem, 1, l - old_i);
 		self.aframe.set_cur(clamp(old_i + add, 0, l));
 		Ok(true)
 	    },
