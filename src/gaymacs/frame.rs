@@ -33,9 +33,8 @@ impl <'a> Frame<'a> {
     }
 
     // Print to the terminal
-    pub fn print(&self) -> Result<bool> {
-	let _ = &self.term.write_line(&self.text());
-	Ok(true)
+    pub fn print(&self) -> Result<()> {
+	self.term.write_line(&self.text())
     }
     
     // Getter for name
@@ -54,20 +53,20 @@ impl <'a> Frame<'a> {
     }
 
     // Update the cursor
-    pub fn set_cur(&mut self, i: usize) {
-	self.cur = i;
+    pub fn set_cur(&mut self, i: usize) -> Result<()> {
+	Ok(self.cur = i)
     }
 
     // Set the path variable so saving works correctly
-    pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<bool> {
+    pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<()> {
 	self.path = Some(p);
 	let s_text = format!("path set as {:?}", self.path);
 	mbuf.show_success(s_text)
     }
 
     // Load a file into buffer
-    pub fn load_from_path(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	match &self.path {	                        // Make sure we have a valid path
+    pub fn load_from_path(&mut self, mbuf: &mut MiniBuf) -> Result<()> {
+	match &self.path {	                        // Ensure valid path
 	    Some(p) => {	                        // Path is valid!
 		let path = Path::new(&p);
 		match &mut File::open(&path) {		// Try to open the path
@@ -96,7 +95,7 @@ impl <'a> Frame<'a> {
     }
 
     // Delete the character behind the cursor
-    pub fn backspace(&mut self) -> Result<bool> {
+    pub fn backspace(&mut self) -> Result<()> {
 	if self.cur > 0 {
 	    let i = self.cur;
 	    let _c = self.buf.remove(i-1);
@@ -106,36 +105,34 @@ impl <'a> Frame<'a> {
 		self.cur = i - 1;
 	    }
 	}
-		
-	Ok(true)
+	Ok(())
     }
 
     // Delete the character under the cursor
-    pub fn delete(&mut self) -> Result<bool> {
+    pub fn delete(&mut self) -> Result<()> {
 	let l = self.text().len();
 	if l > 0 && self.cur < l {
 	    let i = self.cur;
 	    let _c = self.buf.remove(i);
-	}
-		
-	Ok(true)
+	}		
+	Ok(())
     }
 
     // Add the next character to the buffer
-    pub fn write_char(&mut self, c: char) -> Result<bool> {	
+    pub fn write_char(&mut self, c: char) -> Result<()> {	
 	self.buf.insert(self.cur, c);
 	self.cur += 1;
-	Ok(true)
+	Ok(())
     }
 
     // Add a line break to the buffer
-    pub fn newline(&mut self) -> Result<bool> {
-	// TODO: Fix
+    pub fn newline(&mut self) -> Result<()> {
+	// TODO: Fix cursor placement
 	self.write_char('\n')
     }
 
     // Write the buffer to the saved filepath
-    pub fn save(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+    pub fn save(&mut self, mbuf: &mut MiniBuf) -> Result<()> {
 	match &self.path {
 	    // If no file has been initialized, do so now
 	    None => self.save_as(mbuf),
@@ -163,45 +160,41 @@ impl <'a> Frame<'a> {
     }
 
     // Save the buffer in a new location obtained from the user
-    pub fn save_as(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
+    pub fn save_as(&mut self, mbuf: &mut MiniBuf) -> Result<()> {
 	self.term.write_line("Save as: ")?;
 	self.path = Some(self.term.read_line()?);
 	self.save(mbuf)
     }
 
     // Try to move the buffer index one step closer to the end of the buffer
-    pub fn move_fwd(&mut self) -> Result<bool> {
+    pub fn move_fwd(&mut self) -> Result<()> {
 	let l = self.buf.len();
 	let new_i = clamp(self.cur() + 1, 0, l);
-	self.set_cur(new_i);
-	Ok(true)
+	self.set_cur(new_i)
     }
 
     // Try to move the buffer index one step closer to the start of the buffer
-    pub fn move_bck(&mut self) -> Result<bool> {
+    pub fn move_bck(&mut self) -> Result<()> {
 	let l = self.buf.len();
 	let new_i = clamp(self.cur(), 1, l) - 1;
-	self.set_cur(new_i);
-	Ok(true)
+	self.set_cur(new_i)
     }
 
     // Store the rest of the current line in the killring
-    pub fn kill(&mut self, kilr: &mut Killring) -> Result<bool> {
+    pub fn kill(&mut self, kilr: &mut Killring) -> Result<()> {
 	let (tr,tc): (u16,u16) = self.term.size();
 	let (_r,c): (usize, usize) = (tr.into(), tc.into());
-	let i   = self.cur;
-	let eol = clamp(i + (i % c), 0, self.text().len());
+	let l    = self.text().len();
+	let i    = self.cur;
+	let rem  = c - (i % c);
+	let eol  = clamp(i + rem, 0, l);
 	let text = self.buf.drain(i .. eol).collect();	
-	self.term.write_line(&format!("{:?}",text));	
-	
 	kilr.kill(text)
     }
 
     // Write the most recent kill from the killring to the buffer
-    pub fn yank(&mut self, kilr: &mut Killring) -> Result<bool> {
+    pub fn yank(&mut self, kilr: &mut Killring) -> Result<()> {
 	let text = kilr.yank()?;
-	self.buf.insert_str(self.cur, &text);
-	self.term.write_line(&format!("{:?}",text));
-	Ok(true)
+	Ok(self.buf.insert_str(self.cur, &text))
     }
 }

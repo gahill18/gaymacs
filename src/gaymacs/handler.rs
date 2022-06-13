@@ -55,24 +55,19 @@ impl <'a> Handler<'a> {
     // Handle keys that we know are not associated with actions
     pub fn unknown_keys(&self, raw_k: Key, frame: &mut Frame, mbuf: &mut MiniBuf) -> Result<Action> {
 	let _success = match raw_k {
-	    Key::Char('\u{4}') => frame.delete()?,         // Delete in place
-	    Key::Backspace     => frame.backspace()?,	   // Delete backwards
-	    Key::Enter         => frame.newline()?,        // Newline
+	    Key::Char('\u{4}') => frame.delete(),         // Delete in place
+	    Key::Backspace     => frame.backspace(),	   // Delete backwards
+	    Key::Enter         => frame.newline(),        // Newline
 	    // Write char to buffer if it isnt a control code
 	    Key::Char(c)       => {
-		if ! c.is_control() {
-		    frame.write_char(c)?
-		}
-		else {
-		    let err_text = format!("Not valid character: {:?}", c); 
-		    mbuf.show_err(err_text)?;
-		    true
-		}
+		// If c isn't a control key, write it to the buffer
+		if ! c.is_control() { frame.write_char(c) }
+		// Show the control character
+		else { mbuf.show_err(format!("Not valid character: {:?}", c)) }
 	    },
 	    bad_k => {// Show the error text in the minibuffer and do nothing
 		let err_text = format!("Not valid key press: {:?}", bad_k); 
-		mbuf.show_err(err_text)?;
-		true
+		mbuf.show_err(err_text)
 	    },
 	};
 

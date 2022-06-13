@@ -48,9 +48,9 @@
 
 *** [x] Add lifetimes to Window and subs
 *** [ ] Clean up module structure
-*** [ ] INDEV Standardize result return types where possible (Remove Ok(true)'s)
+*** [x] Standardize result return types where possible (Remove Ok(true)'s)
 *** [ ] ONGOING: Improve documentation
-*** [ ] Satisfy clippy
+*** [ ] ONGOING: Satisfy clippy
 *** [ ] Add Pictures to Git Repo
 
 

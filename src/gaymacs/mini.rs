@@ -23,22 +23,19 @@ impl <'a> MiniBuf<'a> {
     }
 
     // Write the current contents of the minibuffer to the terminal
-    pub fn print(&self) -> Result<bool> {
-	self.term.write_line(&format!("\n{:?}\n{:?}", &self.outs,&self.errs))?;
-	Ok(true)
+    pub fn print(&self) -> Result<()> {
+	self.term.write_line(&format!("\n{:?}\n{:?}", &self.outs,&self.errs))
     }
 
     // Update the contents of the minibuffer to show the current error
-    pub fn show_err(&mut self, e: String) -> Result<bool> {
+    pub fn show_err(&mut self, e: String) -> Result<()> {
 	self.term.write_line(&e)?;
-	self.errs.push(e);	
-	Ok(true)
+	Ok(self.errs.push(e))
     }
 
     // Try to show the output of a successfull execution
-    pub fn show_success(&mut self, s: String) -> Result<bool> {
+    pub fn show_success(&mut self, s: String) -> Result<()> {
 	self.term.write_line(&s)?;
-	self.outs.push(s);	
-	Ok(true)
+	Ok(self.outs.push(s))
     }
 }

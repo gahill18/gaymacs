@@ -15,15 +15,14 @@ impl Killring {
     }
 
     // Store the killed text in history
-    pub fn kill(&mut self, s: String) -> Result<bool> {
-	self.hist.push(s);
-	Ok(true)
+    pub fn kill(&mut self, s: String) -> Result<()> {
+	Ok(self.hist.push(s))
     }
 
     pub fn yank(&mut self) -> Result<String> {
 	match self.hist.pop() {
 	    Some(s) => Ok(s),
-	    None    => Ok(String::from(""))
+	    None    => Ok(String::from("")),
 	}
     }
 }

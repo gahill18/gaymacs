@@ -20,6 +20,7 @@ pub struct Window<'a> {
     handler: Handler<'a>,        // Handler for keypresses
     mdln:    Modeline<'a>,       // Modeline for window information
     kilr:    Killring,           // Killring for cut/paste
+    iflg:    bool,               // Interrupt flag
 }
 
 // Create a new default window
@@ -37,7 +38,7 @@ pub fn init_win (t: &Term) -> Window {
     let kr:   Killring = Killring::init_killring();
 
     // Final output
-    let mut out = Window {	    
+    Window {	    
 	aframe:  af,
 	frames:  fs,
 	mbuf:    MiniBuf::init_minibuf(&t),
@@ -46,15 +47,13 @@ pub fn init_win (t: &Term) -> Window {
 	mbup:    false,
 	term:    t,
 	kilr:    kr,
-    };
-
-    // return the window
-    out
+	iflg:    false,
+    }
 }
 
 impl <'a> Window<'a> {
     // Try to redraw to the terminal
-    pub fn refresh(&self) -> Result<bool> {
+    pub fn refresh(&self) -> Result<()> {
 	// Redraw
 	self.term.clear_screen()?;
 	self.aframe.print()?;
@@ -63,37 +62,37 @@ impl <'a> Window<'a> {
 
 	// Update cursor
 	let (new_x,new_y) = fcur_to_tcur(self.aframe.cur(), &self.term);
-	self.term.move_cursor_to(new_x, new_y)?;
-	
-	Ok(true)
+	self.term.move_cursor_to(new_x, new_y)
+    }
+
+    pub fn is_interrupted(&self) -> bool {
+	self.iflg
     }
     
     // Add a frame to the window
     pub fn add_frame(&mut self, frame: Frame<'a>) -> Result<()> {
 	self.aframe = frame;            // Switch active window to newest frame
-	self.frames.push(self.aframe.clone());   // Save the new frame	
-	Ok(())
+	Ok(self.frames.push(self.aframe.clone()))   // Save the new frame	
     }
 
     // List the frames the window can show/switch to in the minibuffer
-    pub fn ls_frames(&mut self) -> Result<bool> {
-	for frame in &self.frames {        // For every frame in the list
-	    let out = frame.name();        // Get the name of the frame
-	    self.mbuf.show_success(out)?;  // Print in the minibuffer
+    pub fn ls_frames(&mut self) -> Result<()> {
+	// Print every frame's name in the minibuffer
+	for frame in &self.frames {        
+	    self.mbuf.show_success(frame.name())?;
 	};
-	Ok(true)
+	Ok(())
     }
 
     // Alternate if the mini should be shown or not
-    pub fn popup_mini(&mut self) -> Result<bool> {
-	self.mbup = !self.mbup;
-	Ok(true)
+    pub fn popup_mini(&mut self) -> Result<()> {
+	Ok(self.mbup = !self.mbup)
     }
 
     // Try to get new filepath from the user for buffer writing
     // The file doesn't have to exist, but the directory its in does
-    pub fn get_path_from_user(&mut self) -> Result<bool> {
-	let _ = &self.term.write_line("Desired filepath:");
+    pub fn get_path_from_user(&mut self) -> Result<()> {
+	self.term.write_line("Desired filepath:")?;
 	let path = self.term.read_line()?;
 	self.aframe.set_path(path, &mut self.mbuf)
     }
@@ -104,32 +103,30 @@ impl <'a> Window<'a> {
     }
 
     // Execute the commands that were passed by the user
-    pub fn execute(&mut self, act: Action) -> Result<bool> {
+    pub fn execute(&mut self, act: Action) -> Result<()> {
 	let (tr,tc): (u16,u16) = self.term.size();
 	let (_r,c): (usize, usize) = (tr.into(), tc.into());
 	let l: usize = self.aframe.text().len();
 	
 	match act {
-	    Quit      => Ok(false),                        // Exit GAYMACS
-	    DoNo      => Ok(true),                         // Do Nothing
+	    Quit      => Ok(self.iflg = true),             // Interrupt
+	    DoNo      => Ok(()),                           // Do Nothing
 	    Save      => self.aframe.save(&mut self.mbuf), // Save current frame
 	    MoveUp    => {		
 		let old_i: usize = self.aframe.cur();
 		// if room to move up, sub term's columns from old frame cur
 		if old_i > c {
 		    let new_cur = old_i - c;
-		    self.aframe.set_cur(new_cur);
+		    self.aframe.set_cur(new_cur)
 		}
 		// No room to move up, so go to the beginning of the buffer
-		else { self.aframe.set_cur(0); }		
-		Ok(true)
+		else { self.aframe.set_cur(0) }
 	    },
 	    MoveDown  => {
 		let old_i: usize = self.aframe.cur();
 		// If room to move down, add term's cols to old frame cur
 		let new_cur = clamp(old_i + c, 0, l);
-		self.aframe.set_cur(new_cur);
-		Ok(true)
+		self.aframe.set_cur(new_cur)
 	    },
 	    MoveLeft  => self.aframe.move_bck(),
 	    MoveRight => self.aframe.move_fwd(),
@@ -137,15 +134,13 @@ impl <'a> Window<'a> {
 		// Do some math to move to the end of the current line
 		let old_i: usize = self.aframe.cur();
 		let add:   usize = c - (old_i % c);
-		self.aframe.set_cur(clamp(old_i + add - 1, 0, l));
-		Ok(true)
+		self.aframe.set_cur(clamp(old_i + add - 1, 0, l))
 	    },
 	    Bol => {
 		// Do some math to move to the beginning of the current line
 		let old_i: usize = self.aframe.cur();
 		let rem = old_i % c;
-		self.aframe.set_cur(old_i - rem);
-		Ok(true)
+		self.aframe.set_cur(old_i - rem)
 	    },
 	    Kill => self.aframe.kill(&mut self.kilr),
 	    Yank => self.aframe.yank(&mut self.kilr),
@@ -153,10 +148,10 @@ impl <'a> Window<'a> {
 	    LoadFromFilePath  => self.aframe.load_from_path(&mut self.mbuf),
 	    SetActiveFilePath => self.get_path_from_user(),
 	    // Don't crash, just tell what went wrong		
-	    c => {  
+	    c => {
+		self.popup_mini()?;
 		let error_text = format!("failed to execute command {:?}", c);
-		self.mbuf.show_err(error_text)?;
-		self.popup_mini()
+		self.mbuf.show_err(error_text)
 	    }
 	}
     }

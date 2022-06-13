@@ -14,8 +14,7 @@ impl <'a> Modeline<'a> {
 	}
     }
 
-    pub fn print(&self) -> Result<bool> {
-	self.term.write_line(&self.buf)?;
-	Ok(true)
+    pub fn print(&self) -> Result<()> {
+	self.term.write_line(&self.buf)
     }
 }
