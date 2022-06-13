@@ -20,8 +20,7 @@
 *** [x] Frame loads file with keypress
 *** [ ] INDEV User can move the cursor around the tui
     TODO: Fix newline functionality with cursor placement
-*** [ ] INDEV Copy/Paste functionality
-    TODO: Implement killring stack
+*** [x] Copy/Paste functionality
 
 ** Minibuffer
 
@@ -73,19 +72,24 @@
 
    *Movement*
 
-    | Left  | C-b |
-    | Right | C-f |
-    | Up    | C-p |
-    | Down  | C-n |
+    | Left/Back  | C-b |
+    | Right/Forward | C-f |
+    | Up/Previous | C-p |
+    | Down/Next | C-n |
     | Beginning of Line | C-a |
     | End of Line | C-e |
 
-    *File Management*
+   *Copy/paste*
+
+   | Kill/Cut to eol | C-k |
+   | Yank/Paste   | C-y |
+
+   *File Management*
 
     | Save | C-s |
     | Set filepath | C-l |
 
-    *UI*
+   *UI*
 
     | Quit GAYMACS | C-q |
     | Toggle minibuffer display | C-o |
