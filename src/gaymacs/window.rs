@@ -2,45 +2,63 @@ use std::io::Result;
 use num::clamp;
 use console::Term;
 
-use crate::*;
+use crate::gaymacs::frame::Frame;
 use crate::gaymacs::mini::MiniBuf;
 use crate::gaymacs::modeline::Modeline;
+use crate::gaymacs::handler::Handler;
+use crate::gaymacs::killring::Killring;
+use crate::*;
+
 
 // The entire window to be displayed in the terminal
-pub struct Window {
-    frames: Vec<Frame>, // List of all frames
-    aframe: Frame,      // Current Active frame
-    mbuf:   MiniBuf,    // Minibuffer
-    mbup:   bool,       // Show minibuffer?
-    term:   Term,       // Terminal to manage windows in
-    handler: Handler,   // Handler for keypresses
-    mdln:   Modeline,   // Modeline for window information
+pub struct Window<'a> {
+    aframe:  Frame<'a>,          // Current Active frame
+    frames:  Vec<Frame<'a>>,     // List of all frames    
+    mbuf:    MiniBuf<'a>,        // Minibuffer
+    mbup:    bool,               // Show minibuffer?
+    term:    &'a Term,           // Terminal to manage windows in
+    handler: Handler<'a>,        // Handler for keypresses
+    mdln:    Modeline<'a>,       // Modeline for window information
+    kilr:    Killring,           // Killring for cut/paste
 }
 
 // Create a new default window
-pub fn init_win(def_frame: Frame, t: Term, h: Handler) -> Window {
-    let fs: Vec<Frame> = vec![def_frame.clone()];
+pub fn init_win (t: &Term) -> Window {
+    // Starting frame
+    let fnam     = String::from("Startup Buffer Name");
+    let fbuf     = String::from("Startup Buffer Text");
+    let fpth     = None; // No file path to start, scratch buffer	
+    let af       = Frame::init_frame(fnam,fbuf,fpth,t);
 
-    Window {
+    // List of frames
+    let fs:   Vec<Frame> = vec![];
+
+    // Killring
+    let kr:   Killring = Killring::init_killring();
+
+    // Final output
+    let mut out = Window {	    
+	aframe:  af,
 	frames:  fs,
-	aframe:  def_frame,
-	mbuf:    MiniBuf::init_minibuf(t.clone()),
+	mbuf:    MiniBuf::init_minibuf(&t),
+	mdln:    Modeline::init_modeline(&t),
+	handler: Handler::init_handler(&t),
 	mbup:    false,
-	term:    t.clone(),
-	handler: h,
-	mdln:    Modeline::init_modeline(t),
-    }
+	term:    t,
+	kilr:    kr,
+    };
+
+    // return the window
+    out
 }
 
-impl Window {
+impl <'a> Window<'a> {
     // Try to redraw to the terminal
     pub fn refresh(&self) -> Result<bool> {
 	// Redraw
 	self.term.clear_screen()?;
 	self.aframe.print()?;
-	if self.mbup {	    
-	    self.mbuf.print()?;
-	}
+	if self.mbup { self.mbuf.print()?; }
 	self.mdln.print()?;
 
 	// Update cursor
@@ -51,16 +69,16 @@ impl Window {
     }
     
     // Add a frame to the window
-    pub fn add_frame(&mut self, frame: Frame) -> Result<bool> {
-	self.frames.push(frame.clone());   // Save the new frame
-	self.aframe = frame;               // Switch active window to newest frame
-	Ok(true)
+    pub fn add_frame(&mut self, frame: Frame<'a>) -> Result<()> {
+	self.aframe = frame;            // Switch active window to newest frame
+	self.frames.push(self.aframe.clone());   // Save the new frame	
+	Ok(())
     }
 
     // List the frames the window can show/switch to in the minibuffer
     pub fn ls_frames(&mut self) -> Result<bool> {
-	for frame in &self.frames {       // For every frame in the list
-	    let out = frame.name();       // Get the name of the frame
+	for frame in &self.frames {        // For every frame in the list
+	    let out = frame.name();        // Get the name of the frame
 	    self.mbuf.show_success(out)?;  // Print in the minibuffer
 	};
 	Ok(true)
@@ -77,8 +95,7 @@ impl Window {
     pub fn get_path_from_user(&mut self) -> Result<bool> {
 	let _ = &self.term.write_line("Desired filepath:");
 	let path = self.term.read_line()?;
-	self.aframe.set_path(path, &mut self.mbuf)?;
-	Ok(true)
+	self.aframe.set_path(path, &mut self.mbuf)
     }
 
     // Try to handle the next keypress from the user
@@ -130,6 +147,8 @@ impl Window {
 		self.aframe.set_cur(old_i - rem);
 		Ok(true)
 	    },
+	    Kill => self.aframe.kill(&mut self.kilr),
+	    Yank => self.aframe.yank(&mut self.kilr),
 	    PrintMini => self.popup_mini(),
 	    LoadFromFilePath  => self.aframe.load_from_path(&mut self.mbuf),
 	    SetActiveFilePath => self.get_path_from_user(),

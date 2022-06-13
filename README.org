@@ -22,7 +22,6 @@
     TODO: Fix newline functionality with cursor placement
 *** [ ] INDEV Copy/Paste functionality
     TODO: Implement killring stack
-    TODO: Add action for kill/yank
 
 ** Minibuffer
 
@@ -47,9 +46,9 @@
 
 ** General Project Management
 
-*** [ ] Add lifetimes to Window and subs
+*** [x] Add lifetimes to Window and subs
 *** [ ] Clean up module structure
-*** [ ] Standardize result return types where possible (Remove Ok(true)'s)
+*** [ ] INDEV Standardize result return types where possible (Remove Ok(true)'s)
 *** [ ] ONGOING: Improve documentation
 *** [ ] Satisfy clippy
 *** [ ] Add Pictures to Git Repo

@@ -1,13 +1,13 @@
 use std::io::Result;
 use console::Term;
 
-pub struct Modeline {
+pub struct Modeline<'a> {
     buf: String,
-    term: Term,
+    term: &'a Term,
 }
 
-impl Modeline {
-    pub fn init_modeline(t: Term) -> Modeline {
+impl <'a> Modeline<'a> {
+    pub fn init_modeline(t: &'a Term) -> Modeline<'a> {
 	Modeline {
 	    buf:  String::from("Modeline"),
 	    term: t,

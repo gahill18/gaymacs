@@ -6,35 +6,31 @@ use std::path::Path;
 use num::clamp;
 use console::Term;
 
-use crate::gaymacs::mini::MiniBuf;
+use crate::gaymacs::{mini::MiniBuf, killring::Killring};
 
 // The individual frames that can be displayed in the window
 #[derive(Debug,Clone)]
-pub struct Frame {
-    id: u16,                   // unique identifier and ordering
-    name: String,              // name of the frame that will display in mini
-    buf: String,               // buffer contents (the text we're editing)
-    cur: usize,                // Cursor location in the buffer
-    path: Option<String>,      // If this is a saved document, store its location
-    term: Term,                // The console this frame is assigned to by win
-}
-
-
-// Takes a unique id, frame name, and starting buffer text, and returns new frame
-pub fn init_frame(uid: u16, n: String, b: String,
-		  p: Option<String>, t: Term) -> Frame {
-    Frame {
-	id: uid,
-	name: n,
-	buf: b,
-	cur: 0,
-	path: p,
-	term: t,
-    }
+pub struct Frame <'a> {
+    name: String,              // name of frame to display in mini/modeline
+    buf:  String,              // buffer contents
+    cur:  usize,               // cursor location in the buffer
+    path: Option<String>,      // if saved document, store its location
+    term: &'a Term,               // console this frame is assigned to by win
 }
 
 // Where you actually edit the text
-impl Frame {
+impl <'a> Frame<'a> {
+    // Takes uniq id, frame name, and starting buf text
+    // returns new frame
+    pub fn init_frame(n: String, b: String, p: Option<String>, t: &'a Term) -> Frame<'a> {
+	Frame {
+	    name: n,
+	    buf:  b,
+	    cur:  0,
+	    path: p,
+	    term: t,
+	}
+    }
 
     // Print to the terminal
     pub fn print(&self) -> Result<bool> {
@@ -66,13 +62,12 @@ impl Frame {
     pub fn set_path(&mut self, p: String, mbuf: &mut MiniBuf) -> Result<bool> {
 	self.path = Some(p);
 	let s_text = format!("path set as {:?}", self.path);
-	mbuf.show_success(s_text)?;
-	Ok(true)
+	mbuf.show_success(s_text)
     }
 
     // Load a file into buffer
     pub fn load_from_path(&mut self, mbuf: &mut MiniBuf) -> Result<bool> {
-	match &self.path {	        // Make sure we have a valid path
+	match &self.path {	                        // Make sure we have a valid path
 	    Some(p) => {	                        // Path is valid!
 		let path = Path::new(&p);
 		match &mut File::open(&path) {		// Try to open the path
@@ -83,23 +78,21 @@ impl Frame {
 			    // We read it!
 			    Ok(_)  => {                 
 				self.buf = fcontents.clone();
-				mbuf.show_success(fcontents)?
+				mbuf.show_success(fcontents)
 			    },
 			    // We didn't read it :(
-			    Err(s) => mbuf.show_err(s.to_string())?,
-			};
-		    },		    
-		    Err(s)   => {                       // Didn't open it :(
-			mbuf.show_err(s.to_string())?;
+			    Err(s) => mbuf.show_err(s.to_string()),
+			}
 		    },
+		    // Didn't open it :(
+		    Err(s) => mbuf.show_err(s.to_string()),
 		}
 	    },	    
 	    None   => {                                 // No path :(
 		let err_text = format!("no filepath for buffer {:?}", self.name);
-		mbuf.show_err(err_text)?;
+		mbuf.show_err(err_text)
 	    },
 	}
-	Ok(true)
     }
 
     // Delete the character behind the cursor
@@ -189,6 +182,26 @@ impl Frame {
 	let l = self.buf.len();
 	let new_i = clamp(self.cur(), 1, l) - 1;
 	self.set_cur(new_i);
+	Ok(true)
+    }
+
+    // Store the rest of the current line in the killring
+    pub fn kill(&mut self, kilr: &mut Killring) -> Result<bool> {
+	let (tr,tc): (u16,u16) = self.term.size();
+	let (_r,c): (usize, usize) = (tr.into(), tc.into());
+	let i   = self.cur;
+	let eol = clamp(i + (i % c), 0, self.text().len());
+	let text = self.buf.drain(i .. eol).collect();	
+	self.term.write_line(&format!("{:?}",text));	
+	
+	kilr.kill(text)
+    }
+
+    // Write the most recent kill from the killring to the buffer
+    pub fn yank(&mut self, kilr: &mut Killring) -> Result<bool> {
+	let text = kilr.yank()?;
+	self.buf.insert_str(self.cur, &text);
+	self.term.write_line(&format!("{:?}",text));
 	Ok(true)
     }
 }
